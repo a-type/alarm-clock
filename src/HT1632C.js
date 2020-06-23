@@ -71,8 +71,16 @@ class HT1632C {
     }
   }
 
-  // http://stackoverflow.com/questions/11725343/implementing-a-bit-swap-hack-in-python
-  swapBits(b) { return (b * 0x0202020202 & 0x010884422010) % 1023; }
+  // https://stackoverflow.com/a/7946195
+  swapBits(v) {
+    var s = v.toString(16); // translate to hex
+    s = s.replace(/^(.(..)*)$/, '0$1'); // add leading 0 if needed
+    var a = s.match(/../g); // split in groups of 2
+    a.reverse(); // reverse the groups
+    var s2 = a.join(''); // join back
+    var v2 = parseInt(s2, 16); // reparse to decimal
+    return v2;
+  }
 
   writeCommand(command) {
     const word = COMMAND | (command << 5);
@@ -123,7 +131,8 @@ class HT1632C {
     let i = addressColumn;
     for (let j = 0; j < char.length; j++) {
       const b = char[j];
-      this.writeDataByte(i, this.swapBits(b));
+      const data = this.swapBits(b);
+      this.writeDataByte(i, data);
       i += 2;
     }
 

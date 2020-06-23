@@ -10,4 +10,9 @@ for (let i = 0; i < 99; i++) {
   }
 }
 
+driver.displayString('Hello', 0);
+
+const rpio = require('rpio');
+rpio.sleep(10);
+
 driver.clearScreen();
