@@ -2,6 +2,7 @@ const rpio = require('rpio');
 const { terminalFont } = require('./fonts');
 
 rpio.init({
+  // sets the pin mapping to use GPIO numbers instead of board numbers
   mapping: 'gpio',
 });
 
@@ -16,12 +17,31 @@ const COMMANDS = {
   RC_MASTER_MODE: 0x18,
   EXT_CLK_MASTER_MODE: 0x1C,
   COMMON_8NMOS: 0x20,
+  COMMON_16NMOS: 0x24,
   PWM16: 0xAF,
 }
 
 const COMMAND = 0x8000;
 const DATA = 0xa000;
 const BOARD0 = 0x00;
+
+const DIMENSIONS = {
+  WIDTH: 24,
+  HEIGHT: 8,
+}
+
+function getFrameBufferIndex(x, y) {
+  // this logic is crazy because the addressing is crazy
+  let frameIndex = 0;
+  // for each counted horizontal panel the x traverses, add 64
+  frameIndex += 64 * Math.floor(x / 8);
+  // add the remainder when dividing by 8
+  frameIndex += (x % 8);
+  // for each y, add 8
+  frameIndex += 8 * y;
+
+  return frameIndex;
+}
 
 class HT1632C {
   constructor(wrPin, dataPin, csPin) {
@@ -31,11 +51,13 @@ class HT1632C {
       cs: csPin,
     };
     this.font = terminalFont;
+    this.frameBuffer = new Array(DIMENSIONS.WIDTH * DIMENSIONS.HEIGHT).fill(0);
 
     console.log(`Pin config: ${JSON.stringify(this.pins)}`);
 
-    ['initDisplay', 'clearScreen', 'selfTest', 'swapBits', 'writeCommand', 'writeDataNibble', 'writeDataByte', 'writeWord', 'writeFontCharacter', 'displayString']
+    ['initDisplay', 'clearScreen', 'selfTest', 'swapBits', 'writeCommand', 'writeDataNibble', 'writeDataByte', 'writeWord', 'drawChar', 'drawPoint', 'drawString', 'flushFrameBuffer', 'writeBit', 'clearFrameBuffer']
       .forEach(method => {
+        if (!this[method]) return;
         this[method] = this[method].bind(this);
       });
 
@@ -58,6 +80,10 @@ class HT1632C {
       this.writeDataByte(i, 0x00);
     }
   };
+
+  clearFrameBuffer() {
+    this.frameBuffer = new Array(DIMENSIONS.WIDTH * DIMENSIONS.HEIGHT).fill(0);
+  }
 
   selfTest() {
     for (let i = 0; i < 64; i+=2) {
@@ -89,6 +115,7 @@ class HT1632C {
 
   writeDataNibble(address, dataNibble) {
     const word = DATA | ((address & 0x3f) << 6) | ((dataNibble & 0x0f) << 2);
+    console.log(word.toString(2));
     this.writeWord(word, 14);
   };
 
@@ -119,36 +146,72 @@ class HT1632C {
     for (let i = start; i > stop; i--) { // reverse-endian
       const mask = Math.pow(2, i);
       const bit = ((word & mask) === mask) ? 1 : 0;
-      rpio.write(this.pins.data, bit);
-      rpio.write(this.pins.wr, rpio.LOW); // clock it in
-      rpio.write(this.pins.wr, rpio.HIGH);
+      this.writeBit(bit);
     }
 
     rpio.write(this.pins.cs, rpio.HIGH); // finish the cycle
   }
 
-  writeFontCharacter(char, addressColumn) {
-    let i = addressColumn;
-    for (let j = 0; j < char.length; j++) {
-      const b = char[j];
-      const data = this.swapBits(b);
-      this.writeDataByte(i, data);
-      i += 2;
-    }
-
-    // blank column for spacing
-    this.writeDataByte(i, 0x00);
+  writeBit(bit) {
+    rpio.write(this.pins.data, bit);
+    rpio.write(this.pins.wr, rpio.LOW); // clock it in
+    rpio.write(this.pins.wr, rpio.HIGH);
   }
 
-  displayString(string, startCol) {
-    let currentColumn = startCol * 2;
-    for (let s = 0; s < string.length; s++) {
-      const char = string[s];
-      const ord = char.charCodeAt(0);
-      const fontIndex = ord - 32;
-      this.writeFontCharacter(this.font[fontIndex], currentColumn);
-      currentColumn += 12; // based on width of chars
+  // a drawing primitive, translates the physical location to framebuffer location
+  drawPoint(x, y, bit) {
+    const frameIndex = getFrameBufferIndex(x, y);
+    this.frameBuffer[frameIndex] = bit;
+  }
+
+  /**
+   * Writes a character to the framebuffer at cursor position,
+   * then returns the updated cursor position, which will move horizontally
+   * to the far end of the character.
+   */
+  drawCharacter(char, cursor) {
+    let map = this.font[char];
+    if (!map) map = this.font[' '];
+    const charWidth = map[0].length;
+
+    for (let y = 0; y < map.length; y++) {
+      for (let x = 0; x < map[y].length; x++) {
+        this.drawPoint(x + cursor.x, y + cursor.y, map[y][x]);
+      }
     }
+
+    return {
+      x: cursor.x + charWidth,
+      y: cursor.y,
+    }
+  }
+
+  drawString(string, startCursor = { x: 0, y: 0 }) {
+    let cursor = startCursor;
+
+    for (let i = 0; i < string.length; i++) {
+      cursor = this.drawCharacter(string[i], cursor);
+      // add space between letters
+      cursor.x += 1;
+    }
+  }
+
+  /** flushes the current frame buffer to screen */
+  flushFrameBuffer() {
+    rpio.write(this.pins.wr, rpio.HIGH);
+    rpio.write(this.pins.cs, rpio.LOW);
+
+    // manually writing the DATA command id
+    [1, 0, 1].forEach(this.writeBit);
+
+    // manually writing 0 address
+    [0, 0, 0, 0, 0, 0, 0].forEach(this.writeBit);
+
+    for (let i = 0; i < this.frameBuffer.length; i++) {
+      this.writeBit(this.frameBuffer[i]);
+    }
+
+    rpio.write(this.pins.cs, rpio.HIGH);
   }
 }
 
