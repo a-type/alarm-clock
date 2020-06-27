@@ -11,7 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "node-wiring-pi": "0.0.5",
-    "rpio": "^2.1.1"
+    "rpio": "^2.1.1",
+    "xstate": "^4.10.0"
   },
   "devDependencies": {
     "ts-node": "^8.10.2",

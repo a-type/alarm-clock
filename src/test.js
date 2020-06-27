@@ -1,7 +1,7 @@
-const HT1632C = require('./HT1632C');
+const driver = require('./ledDriver');
 const rpio = require('rpio');
-
-const driver = new HT1632C(9, 11, 10);
+const rotary = require('./rotary');
+const marquee = require('./marquee');
 
 driver.selfTest();
 driver.clearScreen();
@@ -28,13 +28,15 @@ driver.clearScreen();
 //   }
 // }
 
-function drawTime() {
-  const now = new Date();
-  const hour = (now.getHours() - 5 + 48) % 24;
-  const minute = now.getMinutes();
-  driver.clearScreen();
-  driver.drawString(`${hour.toString().padStart(2, ' ')}:${minute.toString().padStart('0')}`, { x: 1, y: 0 });
-  driver.flushFrameBuffer();
-}
-drawTime();
-setInterval(drawTime, 60000);
+// function drawTime() {
+//   const now = new Date();
+//   const hour = (now.getHours() - 5 + 48) % 24;
+//   const minute = now.getMinutes();
+//   driver.clearScreen();
+//   driver.drawString(`${hour.toString().padStart(2, ' ')}:${minute.toString().padStart(2, '0')}`, { x: 1, y: 0 });
+//   driver.flushFrameBuffer();
+// }
+// drawTime();
+// setInterval(drawTime, 60000);
+
+marquee('Long text!!', driver, 2);

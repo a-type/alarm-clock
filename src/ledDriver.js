@@ -31,6 +31,8 @@ const DIMENSIONS = {
 }
 
 function getFrameBufferIndex(x, y) {
+  if (x < 0 || y < 0 || x >= DIMENSIONS.WIDTH || y >= DIMENSIONS.HEIGHT) return -1;
+
   // this logic is crazy because the addressing is crazy
   let frameIndex = 0;
   // for each counted horizontal panel the x traverses, add 64
@@ -44,7 +46,7 @@ function getFrameBufferIndex(x, y) {
 }
 
 class HT1632C {
-  constructor(wrPin, dataPin, csPin) {
+  constructor(wrPin = 9, dataPin = 11, csPin = 10) {
     this.pins = {
       wr: wrPin,
       data: dataPin,
@@ -52,8 +54,10 @@ class HT1632C {
     };
     this.font = terminalFont;
     this.frameBuffer = new Array(DIMENSIONS.WIDTH * DIMENSIONS.HEIGHT).fill(0);
-
-    console.log(`Pin config: ${JSON.stringify(this.pins)}`);
+    this.dimensions = {
+      width: DIMENSIONS.WIDTH,
+      height: DIMENSIONS.HEIGHT
+    };
 
     ['initDisplay', 'clearScreen', 'selfTest', 'swapBits', 'writeCommand', 'writeDataNibble', 'writeDataByte', 'writeWord', 'drawChar', 'drawPoint', 'drawString', 'flushFrameBuffer', 'writeBit', 'clearFrameBuffer']
       .forEach(method => {
@@ -153,7 +157,7 @@ class HT1632C {
   }
 
   writeBit(bit) {
-    rpio.write(this.pins.data, bit);
+    rpio.write(this.pins.data, (!!bit && bit > 0) ? 1 : 0);
     rpio.write(this.pins.wr, rpio.LOW); // clock it in
     rpio.write(this.pins.wr, rpio.HIGH);
   }
@@ -161,6 +165,9 @@ class HT1632C {
   // a drawing primitive, translates the physical location to framebuffer location
   drawPoint(x, y, bit) {
     const frameIndex = getFrameBufferIndex(x, y);
+    // don't draw invalid pixels
+    if (!frameIndex) return;
+
     this.frameBuffer[frameIndex] = bit;
   }
 
@@ -215,4 +222,4 @@ class HT1632C {
   }
 }
 
-module.exports = HT1632C;
+module.exports = new HT1632C();
