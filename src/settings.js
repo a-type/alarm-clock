@@ -1,6 +1,8 @@
 const fs = require('fs');
 const { EventEmitter } = require('events');
 
+const SETTINGS_FILE = '/home/pi/alarm.settings.json';
+
 const DEFAULT_SETTINGS = {
   alarms: {
     sunday: null,
@@ -17,25 +19,14 @@ const DEFAULT_SETTINGS = {
   }
 }
 
-function saveSettings(settings) {
-  fs.writeFileSync('settings.json', JSON.stringify(settings), { encoding: 'utf-8' });
-}
-
-function loadSettings() {
-  if (fs.existsSync('settings.json')) {
-    return fs.readFileSync('settings.json', 'utf-8');
-  }
-  return DEFAULT_SETTINGS;
-}
-
 class Settings extends EventEmitter {
   constructor() {
     super();
 
     ['set', 'get'].forEach(m => this[m] = this[m].bind(this));
 
-    if (fs.existsSync('settings.json')) {
-      const stringSettings = fs.readFileSync('settings.json', 'utf-8');
+    if (fs.existsSync(SETTINGS_FILE)) {
+      const stringSettings = fs.readFileSync(SETTINGS_FILE, 'utf-8');
       try {
         this.settings = JSON.parse(stringSettings);
       } catch (err) {
@@ -48,7 +39,7 @@ class Settings extends EventEmitter {
   }
 
   set(settings) {
-    fs.writeFileSync('settings.json', JSON.stringify(settings), { encoding: 'utf-8' });
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings), { encoding: 'utf-8' });
     this.settings = settings;
     this.emit('changed', this.settings);
   }

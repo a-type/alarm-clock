@@ -18,6 +18,8 @@ Installing Node - https://www.thepolyglotdeveloper.com/2018/03/install-nodejs-ra
 > sudo cp -r node-v10.9.0-linux-armv6l/* /usr/local
 ```
 
+Speaker setup: https://www.lucadentella.it/en/2017/04/26/raspberry-pi-zero-audio-output-via-i2s/
+
 ## Running the test program
 
 Right now I have a basic program to test board control to the old Kello display board I ripped out of my previous alarm clock. But theoretically it will work for anything HT1632C-powered. Connect the wires from HT1632C to Raspberry PI:

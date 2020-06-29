@@ -14,8 +14,8 @@ class Clock extends EventEmitter {
   tick() {
     const now = new Date();
     const { timeAdjustment } = settings.get();
-    now.setHours(now.getHours() + timeAdjustment.hour);
-    now.setMinutes(now.getMinutes() + timeAdjustment.minute);
+    now.setHours(now.getHours() + timeAdjustment.hour || 0);
+    now.setMinutes(now.getMinutes() + timeAdjustment.minute || 0);
 
     const previousTime = this.time;
     this.time = now;

@@ -2,7 +2,7 @@ const rpio = require('rpio');
 const { EventEmitter } = require('events');
 
 const PINS = {
-  CLK: 21, // A
+  CLK: 26, // A
   DT: 20, // B
   SW: 16 // BUTTON
 }
