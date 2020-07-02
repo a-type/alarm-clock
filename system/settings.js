@@ -14,8 +14,8 @@ const DEFAULT_SETTINGS = {
     saturday: null,
   },
   timeAdjustment: {
-    hours: 0,
-    minutes: 0,
+    hour: 0,
+    minute: 0,
   }
 }
 
