@@ -6,17 +6,19 @@ export function TimeSelect({ value, onChange, className }) {
   const hour = value && value.hour;
   const minute = value && value.minute;
 
-  const handleHourChange = (ev, val) => {
+  const handleHourChange = (ev) => {
+    if (minute === null) return;
     onChange({
-      hour: parseInt(val),
-      minute
+      hour: parseInt(ev.target.value),
+      minute,
     });
   };
 
-  const handleMinuteChange = (ev, val) => {
+  const handleMinuteChange = (ev) => {
+    if (hour === null) return;
     onChange({
       hour,
-      minute: parseInt(val)
+      minute: parseInt(ev.target.value),
     });
   };
 
@@ -26,15 +28,38 @@ export function TimeSelect({ value, onChange, className }) {
 
   return (
     <Box className={className}>
-      <TextField select label="Hour" value={hour} onChange={handleHourChange} margin="normal">
+      <TextField
+        select
+        variant="filled"
+        label="Hour"
+        value={hour}
+        onChange={handleHourChange}
+        margin="normal"
+        style={{ width: 120 }}
+      >
         {new Array(24).fill(null).map((_, hr) => (
-          <MenuItem key={hr} value={hr.toString().padStart(2, '0')}>{hr}</MenuItem>
+          <MenuItem key={hr} value={hr.toString()}>
+            {hr}
+          </MenuItem>
         ))}
       </TextField>
-      <TextField select label="Min" value={minute} onChange={handleMinuteChange} margin="normal">
-        {new Array(12).fill(null).map((_, i) => i * 5).map(min => (
-          <MenuItem key={min} value={min.toString().padStart(2, '0')}>{min.toString().padStart(2, '0')}</MenuItem>
-        ))}
+      <TextField
+        select
+        variant="filled"
+        label="Min"
+        value={minute}
+        onChange={handleMinuteChange}
+        margin="normal"
+        style={{ width: 120 }}
+      >
+        {new Array(12)
+          .fill(null)
+          .map((_, i) => i * 5)
+          .map((min) => (
+            <MenuItem key={min} value={min.toString()}>
+              {min.toString().padStart(2, '0')}
+            </MenuItem>
+          ))}
       </TextField>
       {value && (
         <IconButton onClick={clear}>
