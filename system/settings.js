@@ -28,7 +28,7 @@ class Settings extends EventEmitter {
     if (fs.existsSync(SETTINGS_FILE)) {
       const stringSettings = fs.readFileSync(SETTINGS_FILE, 'utf-8');
       try {
-        this.settings = JSON.parse(stringSettings);
+        this.settings = {...DEFAULT_SETTINGS, ...JSON.parse(stringSettings) };
       } catch (err) {
         console.error(err);
         this.settings = DEFAULT_SETTINGS;
@@ -39,8 +39,9 @@ class Settings extends EventEmitter {
   }
 
   set(settings) {
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings), { encoding: 'utf-8' });
-    this.settings = settings;
+    const defaulted = {...DEFAULT_SETTINGS, ...settings};
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(defaulted), { encoding: 'utf-8' });
+    this.settings = defaulted;
     this.emit('changed', this.settings);
   }
 

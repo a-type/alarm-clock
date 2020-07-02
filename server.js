@@ -26,8 +26,9 @@ app.get('/api/settings', (req, res) => {
 });
 
 app.put('/api/settings', (req, res) => {
+  // TODO: validation
   settings.set(req.body);
-  res.status(200).send(req.body);
+  res.status(200).json(req.body);
 });
 
 runDisplay();
