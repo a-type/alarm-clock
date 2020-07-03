@@ -18,6 +18,7 @@ import { AlarmTwoTone, SettingsTwoTone } from '@material-ui/icons';
 import { AlarmConfig, Settings } from './types';
 import { darkTheme } from './theme/theme';
 import { Settings as SettingsUI } from './Settings';
+import { ApiError } from './ApiError';
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -146,7 +147,14 @@ function App() {
 }
 
 const swrConfig = {
-  fetcher: (...args: [any, any]) => fetch(...args).then((res) => res.json()),
+  fetcher: (...args: [any, any]) =>
+    fetch(...args).then((res) => {
+      if (!res.ok) {
+        const error = new ApiError('Request failed', res);
+        throw error;
+      }
+      return res.json();
+    }),
 };
 
 export default function () {
