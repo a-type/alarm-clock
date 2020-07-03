@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.19.2",
     "express": "^4.17.1",
+    "form-data": "^3.0.0",
     "rpio": "^2.1.1",
     "xstate": "^4.10.0"
   },
