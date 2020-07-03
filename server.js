@@ -34,6 +34,26 @@ app.put('/api/settings', (req, res) => {
   res.status(200).json(req.body);
 });
 
+app.get('/api/spotify/user', async (req, res) => {
+  try {
+    const user = await spotify.getUser();
+    res.send({ user });
+  } catch (err) {
+    console.error(err.message);
+    res.status(200).send({ user: null });
+  }
+});
+
+app.get('/api/spotify/playlists', async (req, res) => {
+  try {
+    const playlists = await spotify.listPlaylists();
+    res.send({ playlists });
+  } catch (err) {
+    console.error(err.message);
+    res.status(400).send({ playlists: [], message: 'Spotify not connected' });
+  }
+});
+
 let grantNonce = Math.random().toString().slice(2, 100);
 
 app.get('/spotifyLogin', (req, res) => {
@@ -57,7 +77,12 @@ app.get('/spotifyRedirect', async (req, res) => {
     return res.redirect('/?spotifyRejected=true');
   }
 
-  await spotify.getToken(code);
+  try {
+    await spotify.getToken(code);
+  } catch (err) {
+    console.error(err);
+    return res.redirect('/?spotifyFailed=true');
+  }
 
   return res.redirect('/?spotifyConnected=true');
 });

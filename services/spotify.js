@@ -8,19 +8,19 @@ const spotifyStorage = new SettingsStorage('/home/pi/alarm.spotifystore.json', {
 });
 
 async function getToken(code) {
-  const formData = new FormData();
-  formData.append('grant_type', 'authorization_code');
-  formData.append('code', code);
-  formData.append('redirect_uri', 'http://raspberrypi.local/spotifyRedirect');
+  const formData = `grant_type=authorization_code&code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent('http://raspberrypi.local/spotifyRedirect')}`;
   const response = await axios.post(
     'https://accounts.spotify.com/api/token',
     formData,
     {
-      headers: formData.getHeaders(),
-      authorization: `Basic ${Buffer.from(
-        `${secrets.spotify.clientId}:${secrets.spotify.clientSecret}`,
-        'utf-8',
-      ).toString('base64')}`,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        accept: 'application/json',
+        authorization: `Basic ${Buffer.from(
+          `${secrets.spotify.clientId}:${secrets.spotify.clientSecret}`,
+          'utf-8',
+        ).toString('base64')}`,
+      },
     },
   );
 
@@ -43,6 +43,8 @@ async function getToken(code) {
     expiresAt: expireTime.toISOString(),
   });
 
+  console.log(body);
+
   return body.access_token;
 }
 
@@ -59,13 +61,12 @@ async function refresh(force = false) {
 }
 
 async function request(url, method = 'GET', body = undefined) {
-  const { accessToken } = refresh();
+  const accessToken = await refresh();
 
   let response = await axios.request({
     url,
     method,
     data: body,
-    baseUrl: 'https://api.spotify.com/v1/',
     headers: {
       authorization: `Bearer ${accessToken}`,
     },
@@ -73,44 +74,45 @@ async function request(url, method = 'GET', body = undefined) {
 
   if (response.status === 403 || response.status === 401) {
     // try once more
-    const { accessToken: newAccessToken } = refresh(true);
+    const newAccessToken = await refresh(true);
 
     response = await axios.request({
       url,
       method,
       data: body,
-      baseUrl: 'https://api.spotify.com/v1/',
       headers: {
-        authorization: `Bearer ${accessToken}`,
+        authorization: `Bearer ${newAccessToken}`,
       },
     });
   }
 
   if (response.status >= 300) {
-    throw new Error(
+    const err = new Error(
       'Spotify request failed',
       response.status,
-      JSON.stringify(response.body),
+      JSON.stringify(response.data),
     );
+    err.response = response;
+    throw err;
   }
 
   return response;
 }
 
 async function getUser() {
-  const response = await request('me');
-  return response.body;
+  const response = await request('https://api.spotify.com/v1/me');
+  return response.data;
 }
 
 async function listPlaylists() {
   const user = await getUser();
-  const response = await request(`users/${user.id}/playlists`);
-  return response.body.items;
+  const response = await request(`https://api.spotify.com/v1/users/${user.id}/playlists`);
+  return response.data.items;
 }
 
 async function listDevices() {
-  const response = await request(`me/player/devices`);
-  return response.body.devices;
+  const response = await request(`https://api.spotify.com/v1/me/player/devices`);
+  return response.data.devices;
 }
 
 module.exports = {

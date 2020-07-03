@@ -1,5 +1,4 @@
-const fs = require('fs');
-const { EventEmitter } = require('events');
+const SettingsStorage = require('./SettingsStorage');
 
 const MAIN_SETTINGS_FILE = '/home/pi/alarm.settings.json';
 
