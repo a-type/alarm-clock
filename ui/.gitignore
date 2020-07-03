@@ -9,7 +9,11 @@
 /coverage
 
 # production
-/build
+# doing an unconventinal thing here and not ignoring the
+# built artifacts. That's mostly because the Pi struggles to
+# compile TS / Webpack so it's easier to just send the files
+# through Git.
+# /build
 
 # misc
 .DS_Store
