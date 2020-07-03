@@ -31,8 +31,8 @@ const useInputStyles = makeStyles((theme) => ({
 }));
 
 type TimeSelectProps = {
-  value: AlarmConfig;
-  onChange: (newValue: AlarmConfig) => void;
+  value: Pick<AlarmConfig, 'hour' | 'minute'>;
+  onChange: (newValue: Pick<AlarmConfig, 'hour' | 'minute'>) => void;
   className?: string;
 };
 
@@ -60,7 +60,10 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
   };
 
   const clear = () => {
-    onChange(null);
+    onChange({
+      hour: null,
+      minute: null,
+    });
   };
 
   return (
@@ -104,7 +107,7 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
             </MenuItem>
           ))}
       </TextField>
-      {value && (
+      {hour !== null && minute !== null && (
         <IconButton
           onClick={clear}
           className={classes.clearButton}

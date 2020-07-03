@@ -1,5 +1,16 @@
 import * as React from 'react';
-import { makeStyles, Theme, Box, TextField, MenuItem } from '@material-ui/core';
+import {
+  makeStyles,
+  Theme,
+  Box,
+  TextField,
+  MenuItem,
+  Button,
+  Link,
+  CircularProgress,
+  Typography,
+} from '@material-ui/core';
+import useSWR from 'swr';
 
 export type SettingsProps = {
   timeAdjustment: { hour: number; minute: number };
@@ -41,6 +52,10 @@ export function Settings(props: SettingsProps) {
   const classes = useStyles(props);
   const { timeAdjustment, onTimeAdjustmentChanged } = props;
 
+  const { data: spotifyUserData, isValidating: loadingSpotify } = useSWR(
+    '/api/spotify/user',
+  );
+
   const changeTimeZone = (ev: React.ChangeEvent<any>) => {
     const intVal = parseInt(ev.target.value);
     if (isNaN(intVal)) return;
@@ -67,6 +82,24 @@ export function Settings(props: SettingsProps) {
           </MenuItem>
         ))}
       </TextField>
+      {loadingSpotify ? (
+        <CircularProgress />
+      ) : spotifyUserData?.user ? (
+        <Box my={1}>
+          <Typography>
+            Connected to Spotify as {spotifyUserData.user.display_name}
+          </Typography>
+        </Box>
+      ) : (
+        <Button
+          variant="contained"
+          component={Link as any}
+          underline="never"
+          href="/spotifyLogin"
+        >
+          Connect Spotify
+        </Button>
+      )}
     </Box>
   );
 }

@@ -7,7 +7,9 @@ class Alarm extends EventEmitter {
   constructor() {
     super();
 
-    ['handleMinuteChanged', 'start', 'stop'].forEach(m => this[m] = this[m].bind(this));
+    ['handleMinuteChanged', 'start', 'stop'].forEach(
+      (m) => (this[m] = this[m].bind(this)),
+    );
 
     this.start();
   }
@@ -24,9 +26,10 @@ class Alarm extends EventEmitter {
     const { alarms } = settings.get();
     const today = DAYS_IN_ORDER[now.getDay()];
     const alarm = alarms[today];
-    if (!alarm) return;
+    if (!alarm || !alarm.hour || !alarm.minute) return;
 
-    const isAlarmMinute = alarm.hour === now.getHours() && alarm.minute === now.getMinutes();
+    const isAlarmMinute =
+      alarm.hour === now.getHours() && alarm.minute === now.getMinutes();
 
     if (isAlarmMinute) {
       this.emit('triggered');

@@ -11,6 +11,7 @@ import {
 import { TimeSelect } from './TimeSelect';
 import SwipeableViews from 'react-swipeable-views';
 import { AlarmConfig } from './types';
+import { PlaylistSelect } from './PlaylistSelect';
 
 const DAYS = [
   'sunday',
@@ -49,10 +50,28 @@ export function Alarms({ alarms = {}, onChange }: AlarmsProps) {
 
   const [activeDayIndex, setActiveDayIndex] = useState(tomorrow);
 
-  const changeHandler = (day: string) => (newValue: AlarmConfig) => {
+  const changeHandler = (day: string) => (newValue: {
+    hour: number | null;
+    minute: number | null;
+  }) => {
     onChange({
       ...alarms,
-      [day]: newValue,
+      [day]: {
+        ...alarms[day],
+        ...newValue,
+      },
+    });
+  };
+
+  const playlistChangeHandler = (day: string) => (
+    playlistId: string | null,
+  ) => {
+    onChange({
+      ...alarms,
+      [day]: {
+        ...alarms[day],
+        playlistId,
+      },
     });
   };
 
@@ -110,6 +129,10 @@ export function Alarms({ alarms = {}, onChange }: AlarmsProps) {
                     value={alarms[day] || null}
                     onChange={changeHandler(day)}
                     className={classes.timeSelect}
+                  />
+                  <PlaylistSelect
+                    value={alarms[day].playlistId}
+                    onChange={playlistChangeHandler(day)}
                   />
                 </Box>
               </>

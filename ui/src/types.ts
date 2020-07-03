@@ -1,7 +1,8 @@
 export type AlarmConfig = {
-  hour: number;
-  minute: number;
-} | null;
+  hour: number | null;
+  minute: number | null;
+  playlistId: string | null;
+};
 
 export type Settings = {
   alarms: Record<string, AlarmConfig>;
