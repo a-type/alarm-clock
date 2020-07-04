@@ -5,6 +5,7 @@ const ip = require('./system/ip');
 
 const secrets = require('/home/pi/alarm.secrets.json');
 const spotify = require('./services/spotify');
+const hue = require('./services/hue');
 
 const runDisplay = require('./system/runDisplay');
 
@@ -82,6 +83,46 @@ app.post('/api/spotify/stopPlayback', async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Couldn\'t stop playback');
+  }
+});
+
+app.post('/api/hue/connect', async (req, res) => {
+  try {
+    await hue.discoverAndCreateUser();
+    res.status(201).send();
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+app.get('/api/hue/groups', async (req, res) => {
+  try {
+    const groups = await hue.getGroups();
+    res.status(200).send(groups);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+app.put('/api/hue/state', async (req, res) => {
+  try {
+    await hue.setGroupState(req.body.on);
+    res.status(201).send();
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send(err.message);
+  }
+});
+
+app.get('/api/hue/bridge', async (req, res) => {
+  try {
+    const bridge = await hue.getBridge();
+    res.status(200).send(bridge);
+  } catch (err) {
+    console.error(err.message);
+    res.status(404).send(err.message);
   }
 });
 

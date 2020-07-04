@@ -54,6 +54,9 @@ const DEFAULT_SETTINGS = {
   spotify: {
     deviceId: null,
   },
+  hue: {
+    lightGroupId: null,
+  }
 };
 
 module.exports = new SettingsStorage(MAIN_SETTINGS_FILE, DEFAULT_SETTINGS);
