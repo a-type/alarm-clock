@@ -199,7 +199,7 @@ module.exports = () => {
     if (state.value !== 'clock' && state.value !== 'alarmRinging') {
       idleTimeout = setTimeout(() => {
         service.send('IDLE');
-      }, 10000);
+      }, 5000);
     }
   });
 
