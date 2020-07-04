@@ -6,7 +6,7 @@ import {
   IconButton,
   makeStyles,
 } from '@material-ui/core';
-import { DeleteTwoTone } from '@material-ui/icons';
+import { DeleteTwoTone, InsertInvitationOutlined } from '@material-ui/icons';
 import clsx from 'clsx';
 import { ChangeEvent } from 'react';
 import { AlarmConfig } from './types';
@@ -45,18 +45,20 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
   const minute = value && value.minute;
 
   const handleHourChange = (ev: ChangeEvent<any>) => {
-    if (minute === null) return;
+    const intVal = parseInt(ev.target.value);
+    if (minute === null || hour === intVal) return;
     onChange({
-      hour: parseInt(ev.target.value),
+      hour: intVal,
       minute,
     });
   };
 
   const handleMinuteChange = (ev: ChangeEvent<any>) => {
-    if (hour === null) return;
+    const intVal = parseInt(ev.target.value);
+    if (hour === null || minute === intVal) return;
     onChange({
       hour,
-      minute: parseInt(ev.target.value),
+      minute: intVal,
     });
   };
 

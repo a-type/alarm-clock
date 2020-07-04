@@ -13,20 +13,21 @@ import {
   CssBaseline,
   LinearProgress,
   Fade,
-  Hidden,
 } from '@material-ui/core';
 import {
   AlarmTwoTone,
   SettingsTwoTone,
   RadioTwoTone,
+  EmojiObjectsTwoTone,
 } from '@material-ui/icons';
-import { AlarmConfig, Settings } from './types';
+import { Settings } from './types';
 import { darkTheme } from './theme/theme';
 import { Settings as SettingsUI } from './Settings';
 import { ApiError } from './ApiError';
 import { Spotify } from './Spotify';
+import { Hue } from './Hue';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   container: {
     display: 'flex',
     flexDirection: 'column',
@@ -122,6 +123,12 @@ function App() {
           aria-controls="tabpanel-spotify"
         />
         <Tab
+          icon={<EmojiObjectsTwoTone />}
+          label="Hue"
+          id="tab-hue"
+          aria-controls="tabpanel-hue"
+        />
+        <Tab
           icon={<SettingsTwoTone />}
           label="Settings"
           id="tab-settings"
@@ -161,6 +168,22 @@ function App() {
         </Box>
       )}
       {activeTab === 2 && (
+        <Box
+          id="tabpanel-settings"
+          role="tabpanel"
+          aria-labelledby="tab-settings"
+          width="100%"
+          flex={1}
+          display="flex"
+          flexDirection="column"
+        >
+          <Hue
+            hueSettings={settings.hue}
+            onHueSettingsChanged={settingChangeHandler('hue')}
+          />
+        </Box>
+      )}
+      {activeTab === 3 && (
         <Box
           id="tabpanel-settings"
           role="tabpanel"

@@ -14,4 +14,7 @@ export type Settings = {
   spotify: {
     deviceId: string | null;
   };
+  hue: {
+    lightGroupId: string | null;
+  };
 };
