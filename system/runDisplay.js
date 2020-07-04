@@ -85,7 +85,10 @@ const displayMachine = Machine({
     },
     alarmRinging: {
       on: {
-        MAIN_BUTTON: 'morningRoutine'
+        MAIN_BUTTON: {
+          target: 'morningRoutine',
+          actions: 'stopAlarm'
+        }
       },
       activities: ['drawAlarmRinging']
     },
@@ -117,6 +120,9 @@ const displayMachine = Machine({
     clearScreen: (context) => {
       context.driver.clearScreen();
     },
+    stopAlarm: (context) => {
+      alarm.stop();
+    }
   },
   activities: {
     drawClock: (context) => {

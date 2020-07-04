@@ -2,13 +2,17 @@ const axios = require('axios');
 const FormData = require('form-data');
 const secrets = require('/home/pi/alarm.secrets.json');
 const SettingsStorage = require('../system/SettingsStorage');
+const ip = require('../system/ip');
 
 const spotifyStorage = new SettingsStorage('/home/pi/alarm.spotifystore.json', {
   refreshToken: null,
+  accessToken: null,
 });
 
-async function getToken(code) {
-  const formData = `grant_type=authorization_code&code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent('http://raspberrypi.local/spotifyRedirect')}`;
+async function getToken(code, refresh = false) {
+  const formData = refresh
+    ? `grant_type=refresh_token&refresh_token=${encodeURIComponent(code)}`
+    : `grant_type=authorization_code&code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent(`http://${ip}/spotifyRedirect`)}`;
   const response = await axios.post(
     'https://accounts.spotify.com/api/token',
     formData,
@@ -21,46 +25,38 @@ async function getToken(code) {
           'utf-8',
         ).toString('base64')}`,
       },
+      validateStatus: status => status < 500,
     },
   );
 
   if (response.status >= 300) {
+    console.error(`Spotify token auth failed: ${response.status}, ${JSON.stringify(response.data)}`);
+    console.error(`Sent: ${formData}`);
     throw new Error(
-      'Spotify authorization failed',
-      response.status,
-      JSON.stringify(response.data),
+      'Spotify authorization failed'
     );
   }
 
   const body = response.data;
 
-  const expireTime = new Date();
-  expireTime.setSeconds(expireTime.getSeconds() + body.expires_in);
-
   spotifyStorage.set({
     accessToken: body.access_token,
-    refreshToken: body.refresh_token,
-    expiresAt: expireTime.toISOString(),
+    // there's only 1 persistent refresh token, so put it back into
+    // the settings storage when we do a refresh
+    refreshToken: refresh ? code : body.refresh_token,
   });
-
-  console.log(body);
 
   return body.access_token;
 }
 
-async function refresh(force = false) {
-  const { accessToken, refreshToken, expiresAt } = spotifyStorage.get();
-
-  // buffer of time for expiration = 10s
-  if (!force && new Date(expiresAt).getTime() > new Date().getTime() + 10000) {
-    return accessToken;
-  }
-
-  const newToken = await getToken(refreshToken);
+async function refresh() {
+  const { refreshToken } = spotifyStorage.get();
+  const newToken = await getToken(refreshToken, true);
   return newToken;
 }
 
 async function request(url, method = 'GET', body = undefined) {
+  // const { accessToken } = spotifyStorage.get();
   const accessToken = await refresh();
 
   let response = await axios.request({
@@ -70,11 +66,12 @@ async function request(url, method = 'GET', body = undefined) {
     headers: {
       authorization: `Bearer ${accessToken}`,
     },
+    validateStatus: status => status < 500,
   });
 
   if (response.status === 403 || response.status === 401) {
     // try once more
-    const newAccessToken = await refresh(true);
+    const newAccessToken = await refresh();
 
     response = await axios.request({
       url,
@@ -83,14 +80,14 @@ async function request(url, method = 'GET', body = undefined) {
       headers: {
         authorization: `Bearer ${newAccessToken}`,
       },
+      validateStatus: status => status < 500,
     });
   }
 
   if (response.status >= 300) {
+    console.error(`Spotify request failed: ${response.status}, ${JSON.stringify(response.data)}`);
     const err = new Error(
       'Spotify request failed',
-      response.status,
-      JSON.stringify(response.data),
     );
     err.response = response;
     throw err;
@@ -105,8 +102,7 @@ async function getUser() {
 }
 
 async function listPlaylists() {
-  const user = await getUser();
-  const response = await request(`https://api.spotify.com/v1/users/${user.id}/playlists`);
+  const response = await request(`https://api.spotify.com/v1/me/playlists`);
   return response.data.items;
 }
 
@@ -115,9 +111,29 @@ async function listDevices() {
   return response.data.devices;
 }
 
+async function startPlayback(deviceId, playlistUri) {
+  await request(`https://api.spotify.com/v1/me/player`, 'PUT', {
+    device_ids: [deviceId],
+  });
+  await request(`https://api.spotify.com/v1/me/player/play?deviceId=${deviceId}`, 'PUT', {
+    context_uri: playlistUri
+  });
+}
+
+async function stopPlayback() {
+  await request(`https://api.spotify.com/v1/me/player/pause`, 'PUT', {});
+}
+
+async function setVolume(volumePercent) {
+  await request(`https://api.spotify.com/v1/me/player/volume?volume_percent=${volumePercent}`, 'PUT');
+}
+
 module.exports = {
   getToken,
   getUser,
   listPlaylists,
   listDevices,
+  startPlayback,
+  setVolume,
+  stopPlayback,
 };

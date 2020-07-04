@@ -7,42 +7,52 @@ const DEFAULT_SETTINGS = {
     sunday: {
       hour: null,
       minute: null,
-      playlistId: null,
+      playlistUri: null,
+      disabled: true,
     },
     monday: {
       hour: null,
       minute: null,
-      playlistId: null,
+      playlistUri: null,
+      disabled: true,
     },
     tuesday: {
       hour: null,
       minute: null,
-      playlistId: null,
+      playlistUri: null,
+      disabled: true,
     },
     wednesday: {
       hour: null,
       minute: null,
-      playlistId: null,
+      playlistUri: null,
+      disabled: true,
     },
     thursday: {
       hour: null,
       minute: null,
-      playlistId: null,
+      playlistUri: null,
+      disabled: true,
     },
     friday: {
       hour: null,
       minute: null,
-      playlistId: null,
+      playlistUri: null,
+      disabled: true,
     },
     saturday: {
       hour: null,
       minute: null,
-      playlistId: null,
+      playlistUri: null,
+      disabled: true,
     },
   },
   timeAdjustment: {
     hour: 0,
     minute: 0,
+  },
+  spotify: {
+    deviceId: null,
   },
 };
 
