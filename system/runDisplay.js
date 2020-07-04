@@ -5,6 +5,7 @@ const settings = require('./settings');
 const alarm = require('./alarm');
 const clock = require('./clock');
 const marquee = require('./marquee');
+const hue = require('../services/hue');
 
 /**
  * DISPLAY
@@ -26,6 +27,7 @@ const displayMachine = Machine({
     settings,
     alarm,
     clock,
+    hue,
   },
   states: {
     clock: {
@@ -66,10 +68,31 @@ const displayMachine = Machine({
       }
     },
     lightsSettings: {
-      on: {
-        MAIN_BUTTON: 'menu'
+      initial: 'on',
+      states: {
+        on: {
+          on: {
+            MAIN_BUTTON: {
+              target: '#display.clock',
+              actions: 'lightsOn',
+            },
+            DIAL_INCREMENT: 'off',
+            DIAL_DECREMENT: 'off',
+          },
+          activities: ['drawLightsSettingsOn']
+        },
+        off: {
+          on: {
+            MAIN_BUTTON: {
+              target: '#display.clock',
+              actions: 'lightsOff',
+            },
+            DIAL_INCREMENT: 'on',
+            DIAL_DECREMENT: 'on',
+          },
+          activities: ['drawLightsSettingsOff']
+        }
       },
-      activities: ['drawLightsSettings']
     },
     nestSettings: {
       on: {
@@ -122,7 +145,13 @@ const displayMachine = Machine({
     },
     stopAlarm: (context) => {
       alarm.stop();
-    }
+    },
+    lightsOn: (context) => {
+      hue.setGroupState(true);
+    },
+    lightsOff: (context) => {
+      hue.setGroupState(false);
+    },
   },
   activities: {
     drawClock: (context) => {
@@ -147,7 +176,8 @@ const displayMachine = Machine({
     drawMenuLights: (context) => marquee('Lights', context.driver),
     drawMenuNest: (context) => marquee('Nest', context.driver),
     drawMenuAlarm: (context) => marquee('Alarm', context.driver),
-    drawLightsSettings: (context) => marquee('TODO', context.driver),
+    drawLightsSettingsOn: (context) => marquee('On', context.driver),
+    drawLightsSettingsOff: (context) => marquee('Off', context.driver),
     drawNestSettings: (context) => marquee('TODO', context.driver),
     drawAlarmSettings: (context) => marquee('TODO', context.driver),
     drawAlarmRinging: (context) => marquee('Wake up!', context.driver),
@@ -161,7 +191,7 @@ module.exports = () => {
   // idle timeout event
   let idleTimeout = null;
   service.onTransition(state => {
-    console.log('State: ' + state.value);
+    console.log('State: ' + JSON.stringify(state.value));
 
     if (idleTimeout) {
       clearTimeout(idleTimeout);
