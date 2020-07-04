@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const settings = require('./system/settings');
+const ip = require('./system/ip');
 
 const secrets = require('/home/pi/alarm.secrets.json');
 const spotify = require('./services/spotify');
@@ -54,6 +55,36 @@ app.get('/api/spotify/playlists', async (req, res) => {
   }
 });
 
+app.get('/api/spotify/devices', async (req, res) => {
+  try {
+    const devices = await spotify.listDevices();
+    res.send({ devices });
+  } catch (err) {
+    console.error(err.message);
+    res.status(400).send({ devices: [], message: 'Spotify not connected' });
+  }
+});
+
+app.post('/api/spotify/testPlayback', async (req, res) => {
+  try {
+    await spotify.startPlayback(req.body.deviceId, req.body.playlistUri);
+    res.status(201).send();
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Playback failed');
+  }
+});
+
+app.post('/api/spotify/stopPlayback', async (req, res) => {
+  try {
+    await spotify.stopPlayback();
+    res.status(201).send();
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Couldn\'t stop playback');
+  }
+});
+
 let grantNonce = Math.random().toString().slice(2, 100);
 
 app.get('/spotifyLogin', (req, res) => {
@@ -63,7 +94,7 @@ app.get('/spotifyLogin', (req, res) => {
     `https://accounts.spotify.com/authorize?response_type=code&client_id=${
       secrets.spotify.clientId
     }&scope=${encodeURIComponent(scopes)}&redirect_uri=${encodeURIComponent(
-      'http://raspberrypi.local/spotifyRedirect',
+      `http://${ip}/spotifyRedirect`,
     )}&state=${grantNonce}`,
   );
 });
