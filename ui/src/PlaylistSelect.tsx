@@ -18,6 +18,7 @@ const useStyles = makeStyles<Theme, PlaylistSelectProps>((theme) => ({}));
 type PlaylistsResponse = {
   playlists: {
     id: string;
+    uri: string;
     images: any[];
     name: string;
   }[];
@@ -52,7 +53,7 @@ export function PlaylistSelect(props: PlaylistSelectProps) {
       margin="normal"
     >
       {(playlistData?.playlists ?? []).map((playlist) => (
-        <MenuItem value={playlist.id} key={playlist.id}>
+        <MenuItem value={playlist.uri} key={playlist.uri}>
           {playlist.name}
         </MenuItem>
       ))}

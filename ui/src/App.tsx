@@ -13,19 +13,25 @@ import {
   CssBaseline,
   LinearProgress,
   Fade,
+  Hidden,
 } from '@material-ui/core';
-import { AlarmTwoTone, SettingsTwoTone } from '@material-ui/icons';
+import {
+  AlarmTwoTone,
+  SettingsTwoTone,
+  RadioTwoTone,
+} from '@material-ui/icons';
 import { AlarmConfig, Settings } from './types';
 import { darkTheme } from './theme/theme';
 import { Settings as SettingsUI } from './Settings';
 import { ApiError } from './ApiError';
+import { Spotify } from './Spotify';
 
 const useStyles = makeStyles((theme) => ({
   container: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    height: '100%',
+    flex: 1,
   },
 }));
 
@@ -110,38 +116,66 @@ function App() {
           aria-controls="tabpanel-alarms"
         />
         <Tab
+          icon={<RadioTwoTone />}
+          label="Spotify"
+          id="tab-spotify"
+          aria-controls="tabpanel-spotify"
+        />
+        <Tab
           icon={<SettingsTwoTone />}
           label="Settings"
           id="tab-settings"
           aria-controls="tabpanel-settings"
         />
       </Tabs>
-      <Box
-        id={`tabpanel-alarms`}
-        role="tabpanel"
-        hidden={activeTab !== 0}
-        aria-labelledby="tab-alarms"
-        width="100%"
-        flex={1}
-      >
-        <Alarms
-          alarms={settings.alarms}
-          onChange={settingChangeHandler('alarms')}
-        />
-      </Box>
-      <Box
-        id="tabpanel-settings"
-        role="tabpanel"
-        hidden={activeTab !== 1}
-        aria-labelledby="tab-settings"
-        width="100%"
-        flex={1}
-      >
-        <SettingsUI
-          timeAdjustment={settings.timeAdjustment}
-          onTimeAdjustmentChanged={settingChangeHandler('timeAdjustment')}
-        />
-      </Box>
+      {activeTab === 0 && (
+        <Box
+          id={`tabpanel-alarms`}
+          role="tabpanel"
+          aria-labelledby="tab-alarms"
+          width="100%"
+          flex={1}
+          display="flex"
+          flexDirection="column"
+        >
+          <Alarms
+            alarms={settings.alarms}
+            onChange={settingChangeHandler('alarms')}
+          />
+        </Box>
+      )}
+      {activeTab === 1 && (
+        <Box
+          id="tabpanel-spotify"
+          role="tabpanel"
+          aria-labelledby="tab-spotify"
+          width="100%"
+          flex={1}
+          display="flex"
+          flexDirection="column"
+        >
+          <Spotify
+            spotifySettings={settings.spotify}
+            onSpotifySettingsChanged={settingChangeHandler('spotify')}
+          />
+        </Box>
+      )}
+      {activeTab === 2 && (
+        <Box
+          id="tabpanel-settings"
+          role="tabpanel"
+          aria-labelledby="tab-settings"
+          width="100%"
+          flex={1}
+          display="flex"
+          flexDirection="column"
+        >
+          <SettingsUI
+            timeAdjustment={settings.timeAdjustment}
+            onTimeAdjustmentChanged={settingChangeHandler('timeAdjustment')}
+          />
+        </Box>
+      )}
     </Container>
   );
 }

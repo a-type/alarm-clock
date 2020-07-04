@@ -15,8 +15,9 @@ const useStyles = makeStyles((theme) => ({
   root: {
     width: '100%',
     display: 'grid',
-    gridTemplateAreas: '"hour minute right"',
-    gridTemplateColumns: '2fr 2fr 1fr',
+    gridTemplateAreas: '"hour minute"',
+    gridTemplateColumns: '2fr 2fr',
+    gridGap: theme.spacing(1),
   },
   clearButton: {
     fontSize: '8vmin',
@@ -59,18 +60,10 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
     });
   };
 
-  const clear = () => {
-    onChange({
-      hour: null,
-      minute: null,
-    });
-  };
-
   return (
     <Box className={clsx(classes.root, className)}>
       <TextField
         select
-        variant="filled"
         label="Hour"
         value={hour}
         onChange={handleHourChange}
@@ -88,7 +81,6 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
       </TextField>
       <TextField
         select
-        variant="filled"
         label="Min"
         value={minute}
         onChange={handleMinuteChange}
@@ -107,15 +99,6 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
             </MenuItem>
           ))}
       </TextField>
-      {hour !== null && minute !== null && (
-        <IconButton
-          onClick={clear}
-          className={classes.clearButton}
-          style={{ gridArea: 'right' }}
-        >
-          <DeleteTwoTone fontSize="inherit" />
-        </IconButton>
-      )}
     </Box>
   );
 }
