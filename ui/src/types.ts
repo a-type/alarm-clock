@@ -1,7 +1,8 @@
 export type AlarmConfig = {
   hour: number | null;
   minute: number | null;
-  playlistId: string | null;
+  playlistUri: string | null;
+  disabled: boolean;
 };
 
 export type Settings = {
@@ -9,5 +10,8 @@ export type Settings = {
   timeAdjustment: {
     hour: number;
     minute: number;
+  };
+  spotify: {
+    deviceId: string | null;
   };
 };

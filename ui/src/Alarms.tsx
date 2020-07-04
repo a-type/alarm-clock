@@ -7,11 +7,14 @@ import {
   Tabs,
   Tab,
   Button,
+  IconButton,
+  Switch,
 } from '@material-ui/core';
 import { TimeSelect } from './TimeSelect';
 import SwipeableViews from 'react-swipeable-views';
 import { AlarmConfig } from './types';
 import { PlaylistSelect } from './PlaylistSelect';
+import { DeleteTwoTone } from '@material-ui/icons';
 
 const DAYS = [
   'sunday',
@@ -27,6 +30,7 @@ const useStyles = makeStyles((theme) => ({
   timeSelect: {},
   dayHeading: {
     textTransform: 'capitalize',
+    flex: 1,
   },
 }));
 
@@ -37,7 +41,7 @@ const useTabStyles = makeStyles((theme) => ({
   },
 }));
 
-const tomorrow = new Date().getDay() + 1;
+const tomorrow = (new Date().getDay() + 1) % 7;
 
 type AlarmsProps = {
   alarms: Record<string, AlarmConfig>;
@@ -59,24 +63,43 @@ export function Alarms({ alarms = {}, onChange }: AlarmsProps) {
       [day]: {
         ...alarms[day],
         ...newValue,
+        // auto enable on change
+        disabled: false,
+      },
+    });
+  };
+
+  const toggleHandler = (day: string) => () => {
+    onChange({
+      ...alarms,
+      [day]: {
+        ...alarms[day],
+        disabled: !alarms[day]?.disabled,
       },
     });
   };
 
   const playlistChangeHandler = (day: string) => (
-    playlistId: string | null,
+    playlistUri: string | null,
   ) => {
     onChange({
       ...alarms,
       [day]: {
         ...alarms[day],
-        playlistId,
+        playlistUri,
       },
     });
   };
 
   return (
-    <Box width="100%" height="100%" display="flex" flexDirection="column">
+    <Box
+      width="100%"
+      height="100%"
+      display="flex"
+      flex={1}
+      flexDirection="column"
+      py={2}
+    >
       <Tabs
         value={activeDayIndex}
         onChange={(_ev, val) => setActiveDayIndex(val)}
@@ -117,21 +140,37 @@ export function Alarms({ alarms = {}, onChange }: AlarmsProps) {
           >
             {activeDayIndex === index && (
               <>
-                <Typography
-                  variant="h5"
-                  gutterBottom
-                  className={classes.dayHeading}
+                <Box
+                  display="flex"
+                  flexDirection="row"
+                  alignItems="center"
+                  my={1}
+                  width="100%"
                 >
-                  {day}
-                </Typography>
+                  <Typography
+                    variant="h5"
+                    gutterBottom
+                    className={classes.dayHeading}
+                  >
+                    {day}
+                  </Typography>
+                  <Switch
+                    checked={!alarms[day]?.disabled}
+                    onChange={toggleHandler(day)}
+                    // wait until time selected before enabling
+                    disabled={
+                      alarms[day]?.hour === null || alarms[day]?.minute === null
+                    }
+                  />
+                </Box>
                 <Box flex={1} width="100%">
                   <TimeSelect
-                    value={alarms[day] || null}
+                    value={alarms[day] || { hour: null, minute: null }}
                     onChange={changeHandler(day)}
                     className={classes.timeSelect}
                   />
                   <PlaylistSelect
-                    value={alarms[day].playlistId}
+                    value={alarms[day]?.playlistUri ?? null}
                     onChange={playlistChangeHandler(day)}
                   />
                 </Box>

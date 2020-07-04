@@ -16,7 +16,7 @@ const baseDarkPalette: ThemeOptions['palette'] = {
   },
   background: {
     default: colors.black,
-    paper: colors.dark,
+    paper: colors.trueBlack,
   },
 };
 const baseLightPalette: ThemeOptions['palette'] = {
@@ -61,6 +61,7 @@ const themeFactory = (
       h3: headingSettings,
       h4: headingSettings,
       h5: headingSettings,
+      h6: headingSettings,
       body1: {
         fontFamily: 'Montserrat, sans-serif',
       },
