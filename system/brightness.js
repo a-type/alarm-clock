@@ -9,7 +9,7 @@ class Brightness extends EventEmitter {
   constructor() {
     super();
 
-    this.currentState = 0;
+    this.currentState = 15;
 
     ['handleMinuteChanged', 'start', 'stop'].forEach((m) => (this[m] = this[m].bind(this)));
 
@@ -25,7 +25,7 @@ class Brightness extends EventEmitter {
   }
 
   handleMinuteChanged(now) {
-    const desiredState = isEvening(now) ? 0.5 : 1;
+    const desiredState = isEvening(now) ? 7 : 15;
     if (desiredState !== this.currentState) {
       this.currentState = desiredState;
       this.emit('changed', desiredState);

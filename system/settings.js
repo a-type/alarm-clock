@@ -56,6 +56,11 @@ const DEFAULT_SETTINGS = {
   },
   hue: {
     lightGroupId: null,
+  },
+  weather: {
+    // Raleigh, NC
+    latitude: 35.779591,
+    longitude: -78.638176,
   }
 };
 
