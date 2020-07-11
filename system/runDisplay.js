@@ -190,6 +190,8 @@ const displayMachine = Machine({
         .then(({ conditions, high, low }) => {
           const displayString = `${conditions}, ${high}/${low}`;
           cancel = marquee('TODO', context.driver);
+        }).catch(() => {
+          cancel = marquee('Good morning');
         });
 
       return cancel;
