@@ -49,14 +49,13 @@ class Alarm extends EventEmitter {
 
       // start playing Spotify
       try {
-        await spotify.startPlayback(spotifySettings.deviceId, alarm.playlistUri);
-        await spotify.setVolume(0);
+        let volume = 5;
+        await spotify.shufflePlaylist(spotifySettings.deviceId, alarm.playlistUri, volume);
 
         // slowly increase volume.
-        let volume = 5;
         let volumeIntervalHandle = setInterval(async () => {
-          await spotify.setVolume(volume);
           volume += 5;
+          await spotify.setVolume(spotifySettings.deviceId, volume);
           if (volume > 100) clearInterval(volumeIntervalHandle);
         }, 5000);
 

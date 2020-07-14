@@ -63,7 +63,7 @@ function getFrameBufferIndex(x, y) {
 }
 
 class HT1632C {
-  constructor(wrPin = 9, dataPin = 11, csPin = 10, brightPin = 12) {
+  constructor(wrPin = 11, dataPin = 9, csPin = 10, brightPin = 12) {
     this.pins = {
       wr: wrPin,
       data: dataPin,

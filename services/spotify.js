@@ -85,7 +85,7 @@ async function request(url, method = 'GET', body = undefined) {
   }
 
   if (response.status >= 300) {
-    console.error(`Spotify request failed: ${response.status}, ${JSON.stringify(response.data)}`);
+    console.error(`Spotify request failed: ${url}, ${response.status}, ${JSON.stringify(response.data)}`);
     const err = new Error(
       'Spotify request failed',
     );
@@ -111,21 +111,42 @@ async function listDevices() {
   return response.data.devices;
 }
 
-async function startPlayback(deviceId, playlistUri) {
+async function transferPlayback(deviceId) {
   await request(`https://api.spotify.com/v1/me/player`, 'PUT', {
     device_ids: [deviceId],
   });
-  await request(`https://api.spotify.com/v1/me/player/play?deviceId=${deviceId}`, 'PUT', {
+}
+
+async function startPlayback(deviceId, playlistUri) {
+  await request(`https://api.spotify.com/v1/me/player/play?deviceId=${deviceId}`, 'PUT', playlistUri ? {
     context_uri: playlistUri
-  });
+  } : {});
 }
 
 async function stopPlayback() {
   await request(`https://api.spotify.com/v1/me/player/pause`, 'PUT', {});
 }
 
-async function setVolume(volumePercent) {
-  await request(`https://api.spotify.com/v1/me/player/volume?volume_percent=${volumePercent}`, 'PUT');
+async function setVolume(deviceId, volumePercent) {
+  await request(`https://api.spotify.com/v1/me/player/volume?device_id=${deviceId}&volume_percent=${volumePercent}`, 'PUT');
+}
+
+async function setShuffle(deviceId, shuffle) {
+  await request(`https://api.spotify.com/v1/me/player/shuffle?device_id=${deviceId}&state=${shuffle}`, 'PUT');
+}
+
+async function skipNext(deviceId) {
+  await request(`https://api.spotify.com/v1/me/player/next?device_id=${deviceId}`, 'POST');
+}
+
+async function shufflePlaylist(deviceId, playlistUri, volumePercent) {
+  await transferPlayback(deviceId);
+  await setVolume(deviceId, volumePercent);
+  await startPlayback(deviceId, playlistUri);
+  await stopPlayback();
+  await setShuffle(deviceId, true);
+  await skipNext(deviceId);
+  await startPlayback(deviceId);
 }
 
 module.exports = {
@@ -136,4 +157,7 @@ module.exports = {
   startPlayback,
   setVolume,
   stopPlayback,
+  transferPlayback,
+  setShuffle,
+  shufflePlaylist,
 };

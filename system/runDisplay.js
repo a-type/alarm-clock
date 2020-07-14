@@ -189,9 +189,10 @@ const displayMachine = Machine({
       context.weather.getForecast()
         .then(({ conditions, high, low }) => {
           const displayString = `${conditions}, ${high}/${low}`;
-          cancel = marquee('TODO', context.driver);
-        }).catch(() => {
-          cancel = marquee('Good morning');
+          cancel = marquee(displayString, context.driver);
+        }).catch((err) => {
+          console.error(err);
+          cancel = marquee('Good morning', context.driver);
         });
 
       return cancel;
