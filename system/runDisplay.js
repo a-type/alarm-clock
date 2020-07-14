@@ -185,14 +185,15 @@ const displayMachine = Machine({
     drawAlarmSettings: (context) => marquee('TODO', context.driver),
     drawAlarmRinging: (context) => marquee('Wake up!', context.driver),
     drawShowWeather: (context) => {
-      let cancel = function() { /* no op */ };
+      let innerCancel = function() { /* no op */ };
+      let cancel = function() { innerCancel() };
       context.weather.getForecast()
         .then(({ conditions, high, low }) => {
           const displayString = `${conditions}, ${high}/${low}`;
-          cancel = marquee(displayString, context.driver);
+          innerCancel = marquee(displayString, context.driver);
         }).catch((err) => {
           console.error(err);
-          cancel = marquee('Good morning', context.driver);
+          innerCancel = marquee('Good morning', context.driver);
         });
 
       return cancel;

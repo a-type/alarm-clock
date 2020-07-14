@@ -27,9 +27,7 @@ class Alarm extends EventEmitter {
   }
 
   stop() {
-    console.debug('Stopping alarm');
     if (!this.stopAlarm) {
-      console.debug('Nothing to do');
       return;
     }
     this.stopAlarm();
@@ -62,11 +60,11 @@ class Alarm extends EventEmitter {
         this.stopAlarm = async () => {
           try {
             await spotify.stopPlayback();
-            this.stopAlarm = null;
           } catch (err) {
             console.error('Awkward, couldn\'t stop Spotify. Trying again...');
-            setTimeout(this.stopAlarm, 1000);
+            setTimeout(() => spotify.stopPlayback(), 1000);
           } finally {
+            this.stopAlarm = null;
             clearInterval(volumeIntervalHandle);
           }
         };

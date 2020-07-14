@@ -18,8 +18,8 @@ async function getForecast() {
   });
 
   const conditions = day.snow > 0 ? 'Snow' : day.rain > 0.5 ? 'Rain' : 'Clear';
-  const high = day.temp.max;
-  const low = day.temp.min;
+  const high = Math.ceil(day.temp.max);
+  const low = Math.floor(day.temp.min);
 
   return {
     conditions,

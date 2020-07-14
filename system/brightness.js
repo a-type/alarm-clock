@@ -1,5 +1,6 @@
 const { EventEmitter } = require('events');
 const clock = require('./clock');
+const settings = require('./settings');
 
 function isEvening(dateTime) {
   return dateTime.getHours() > 19 || dateTime.getHours() < 7;
@@ -9,7 +10,7 @@ class Brightness extends EventEmitter {
   constructor() {
     super();
 
-    this.currentState = 15;
+    this.currentState = settings.get().display.nightBrightness;
 
     ['handleMinuteChanged', 'start', 'stop'].forEach((m) => (this[m] = this[m].bind(this)));
 
@@ -25,7 +26,10 @@ class Brightness extends EventEmitter {
   }
 
   handleMinuteChanged(now) {
-    const desiredState = isEvening(now) ? 7 : 15;
+    const displaySettings = settings.get().display;
+    const desiredState = isEvening(now)
+      ? displaySettings.nightBrightness
+      : displaySettings.dayBrightness;
     if (desiredState !== this.currentState) {
       this.currentState = desiredState;
       this.emit('changed', desiredState);
