@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   TextField,
@@ -38,6 +38,7 @@ type TimeSelectProps = {
 };
 
 export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
+  const [tempHour, setTempHour] = useState<number | null>(null);
   const classes = useStyles({});
   const inputClasses = useInputStyles({});
 
@@ -46,18 +47,23 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
 
   const handleHourChange = (ev: ChangeEvent<any>) => {
     const intVal = parseInt(ev.target.value);
-    if (minute === null || hour === intVal) return;
-    onChange({
-      hour: intVal,
-      minute,
-    });
+    if (hour === intVal) return;
+    if (minute === null) {
+      setTempHour(intVal);
+    } else {
+      onChange({
+        hour: intVal,
+        minute,
+      });
+    }
   };
 
   const handleMinuteChange = (ev: ChangeEvent<any>) => {
     const intVal = parseInt(ev.target.value);
-    if (hour === null || minute === intVal) return;
+    const finalHour = hour ?? tempHour;
+    if (finalHour === null || minute === intVal) return;
     onChange({
-      hour,
+      hour: finalHour,
       minute: intVal,
     });
   };
@@ -67,7 +73,7 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
       <TextField
         select
         label="Hour"
-        value={hour}
+        value={hour ?? tempHour}
         onChange={handleHourChange}
         fullWidth
         InputProps={{
@@ -91,6 +97,7 @@ export function TimeSelect({ value, onChange, className }: TimeSelectProps) {
           classes: inputClasses,
         }}
         style={{ gridArea: 'minute' }}
+        disabled={hour === null && tempHour === null}
       >
         {new Array(12)
           .fill(null)
