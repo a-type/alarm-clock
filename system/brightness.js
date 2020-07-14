@@ -25,7 +25,7 @@ class Brightness extends EventEmitter {
   }
 
   handleMinuteChanged(now) {
-    const desiredState = isEvening(now) ? 7 : 15;
+    const desiredState = isEvening(now) ? 0 : 15;
     if (desiredState !== this.currentState) {
       this.currentState = desiredState;
       this.emit('changed', desiredState);
