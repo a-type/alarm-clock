@@ -6,9 +6,6 @@ const ip = require('./system/ip');
 const secrets = require('/home/pi/alarm.secrets.json');
 const spotify = require('./services/spotify');
 const hue = require('./services/hue');
-const weather = require('./services/weather');
-
-weather.getForecast().then(d => console.log(JSON.stringify(d)));
 
 const runDisplay = require('./system/runDisplay');
 

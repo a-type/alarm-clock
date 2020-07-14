@@ -124,7 +124,14 @@ async function startPlayback(deviceId, playlistUri) {
 }
 
 async function stopPlayback() {
-  await request(`https://api.spotify.com/v1/me/player/pause`, 'PUT', {});
+  try {
+    await request(`https://api.spotify.com/v1/me/player/pause`, 'PUT', {});
+  } catch (err) {
+    // 404 means there's nothing playing - so our objective was acheived.
+    if (err.response.status !== 404) {
+      throw err;
+    }
+  }
 }
 
 async function setVolume(deviceId, volumePercent) {

@@ -61,6 +61,10 @@ const DEFAULT_SETTINGS = {
     // Raleigh, NC
     latitude: 35.779591,
     longitude: -78.638176,
+  },
+  display: {
+    nightBrightness: 0,
+    dayBrightness: 15,
   }
 };
 
