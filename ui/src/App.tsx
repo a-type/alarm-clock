@@ -196,6 +196,8 @@ function App() {
           <SettingsUI
             timeAdjustment={settings.timeAdjustment}
             onTimeAdjustmentChanged={settingChangeHandler('timeAdjustment')}
+            display={settings.display}
+            onDisplayChanged={settingChangeHandler('display')}
           />
         </Box>
       )}

@@ -17,4 +17,8 @@ export type Settings = {
   hue: {
     lightGroupId: string | null;
   };
+  display: {
+    dayBrightness: number;
+    nightBrightness: number;
+  };
 };
