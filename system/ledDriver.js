@@ -18,7 +18,24 @@ const COMMANDS = {
   EXT_CLK_MASTER_MODE: 0x1C,
   COMMON_8NMOS: 0x20,
   COMMON_16NMOS: 0x24,
-  PWM16: 0xAF,
+  PWM: [
+    0xA0,
+    0xA1,
+    0xA2,
+    0xA3,
+    0xA4,
+    0xA5,
+    0xA6,
+    0xA7,
+    0xA8,
+    0xA9,
+    0xAA,
+    0xAB,
+    0xAC,
+    0xAD,
+    0xAE,
+    0xAF,
+  ]
 }
 
 const COMMAND = 0x8000;
@@ -46,11 +63,12 @@ function getFrameBufferIndex(x, y) {
 }
 
 class HT1632C {
-  constructor(wrPin = 9, dataPin = 11, csPin = 10) {
+  constructor(wrPin = 11, dataPin = 9, csPin = 10, brightPin = 12) {
     this.pins = {
       wr: wrPin,
       data: dataPin,
       cs: csPin,
+      bright: brightPin
     };
     this.font = terminalFont;
     this.frameBuffer = new Array(DIMENSIONS.WIDTH * DIMENSIONS.HEIGHT).fill(0);
@@ -59,7 +77,7 @@ class HT1632C {
       height: DIMENSIONS.HEIGHT
     };
 
-    ['initDisplay', 'clearScreen', 'selfTest', 'swapBits', 'writeCommand', 'writeDataNibble', 'writeDataByte', 'writeWord', 'drawChar', 'drawPoint', 'drawString', 'flushFrameBuffer', 'writeBit', 'clearFrameBuffer']
+    ['initDisplay', 'clearScreen', 'selfTest', 'swapBits', 'writeCommand', 'writeDataNibble', 'writeDataByte', 'writeWord', 'drawChar', 'drawPoint', 'drawString', 'flushFrameBuffer', 'writeBit', 'clearFrameBuffer', 'setBrightness']
       .forEach(method => {
         if (!this[method]) return;
         this[method] = this[method].bind(this);
@@ -68,12 +86,19 @@ class HT1632C {
     rpio.open(this.pins.wr, rpio.OUTPUT, rpio.HIGH);
     rpio.open(this.pins.data, rpio.OUTPUT, rpio.LOW);
     rpio.open(this.pins.cs, rpio.OUTPUT, rpio.HIGH);
+    rpio.open(this.pins.bright, rpio.OUTPUT, rpio.HIGH);
+
+    let v = 0;
+    setInterval(() => {
+      rpio.write(this.pins.bright, v);
+      if (v === 0) v = 1; else v = 0;
+    }, 1000);
 
     this.initDisplay();
   }
 
   initDisplay() {
-    [COMMANDS.SYS_DIS, COMMANDS.COMMON_8NMOS, COMMANDS.SYS_EN, COMMANDS.LED_ON, COMMANDS.PWM16]
+    [COMMANDS.SYS_DIS, COMMANDS.COMMON_8NMOS, COMMANDS.SYS_EN, COMMANDS.LED_ON, COMMANDS.PWM[15]]
       .forEach(this.writeCommand);
 
     rpio.sleep(0.1);
@@ -219,6 +244,11 @@ class HT1632C {
     }
 
     rpio.write(this.pins.cs, rpio.HIGH);
+  }
+
+  /** level is 0 - 15 */
+  setBrightness(level) {
+    this.writeCommand(COMMANDS.PWM[level]);
   }
 }
 

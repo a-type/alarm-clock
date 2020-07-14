@@ -6,6 +6,8 @@ const alarm = require('./alarm');
 const clock = require('./clock');
 const marquee = require('./marquee');
 const hue = require('../services/hue');
+const brightness = require('./brightness');
+const weather = require('../services/weather');
 
 /**
  * DISPLAY
@@ -28,6 +30,7 @@ const displayMachine = Machine({
     alarm,
     clock,
     hue,
+    weather,
   },
   states: {
     clock: {
@@ -181,7 +184,19 @@ const displayMachine = Machine({
     drawNestSettings: (context) => marquee('TODO', context.driver),
     drawAlarmSettings: (context) => marquee('TODO', context.driver),
     drawAlarmRinging: (context) => marquee('Wake up!', context.driver),
-    drawShowWeather: (context) => marquee('TODO', context.driver),
+    drawShowWeather: (context) => {
+      let cancel = function() { /* no op */ };
+      context.weather.getForecast()
+        .then(({ conditions, high, low }) => {
+          const displayString = `${conditions}, ${high}/${low}`;
+          cancel = marquee(displayString, context.driver);
+        }).catch((err) => {
+          console.error(err);
+          cancel = marquee('Good morning', context.driver);
+        });
+
+      return cancel;
+    },
   }
 })
 
@@ -217,6 +232,10 @@ module.exports = () => {
   // alarm event
   alarm.on('triggered', () => {
     service.send('ALARM_TRIGGERED');
+  });
+
+  brightness.on('changed', level => {
+    driver.setBrightness(level);
   });
 
   service.start();
