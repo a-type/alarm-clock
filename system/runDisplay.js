@@ -35,7 +35,10 @@ const displayMachine = Machine({
   states: {
     clock: {
       on: {
-        MAIN_BUTTON: 'menu',
+        MAIN_BUTTON: {
+          target: 'clock',
+          actions: 'quickAction'
+        },
         DIAL_INCREMENT: 'menu',
         DIAL_DECREMENT: 'menu',
       },
@@ -155,6 +158,9 @@ const displayMachine = Machine({
     lightsOff: (context) => {
       hue.setGroupState(false);
     },
+    quickAction: (context) => {
+      hue.toggleGroupState();
+    }
   },
   activities: {
     drawClock: (context) => {

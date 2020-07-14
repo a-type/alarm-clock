@@ -81,6 +81,24 @@ async function setGroupState(on) {
   });
 }
 
+async function getGroupState() {
+  const { hue } = settings.get();
+  if (!hue || !hue.lightGroupId) {
+    throw new Error('You haven\'t set up Hue yet');
+  }
+
+  const api = await getApi();
+
+  const result = await api.groups.getGroupState(hue.lightGroupId);
+  console.log(JSON.stringify(result));
+  return result;
+}
+
+async function toggleGroupState() {
+  const current = await getGroupState();
+  await setGroupState(!current.all_on);
+}
+
 async function getBridge() {
   const api = await getApi();
 
@@ -93,4 +111,6 @@ module.exports = {
   setGroupState,
   getGroups,
   getBridge,
+  getGroupState,
+  toggleGroupState
 };
