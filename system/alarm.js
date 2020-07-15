@@ -9,11 +9,12 @@ class Alarm extends EventEmitter {
   constructor() {
     super();
 
-    ['handleMinuteChanged', 'enable', 'disable', 'stop'].forEach(
+    ['handleMinuteChanged', 'enable', 'disable', 'stop', 'getHasAlarmWithin24Hrs'].forEach(
       (m) => (this[m] = this[m].bind(this)),
     );
 
     this.stopAlarm = null;
+    this.skipNext = false;
 
     this.enable();
   }
@@ -42,7 +43,12 @@ class Alarm extends EventEmitter {
     const isAlarmMinute =
       alarm.hour === now.getHours() && alarm.minute === now.getMinutes();
 
-    if (isAlarmMinute) {
+    if (isAlarmMinute && !alarm.disabled) {
+      if (this.skipNext) {
+        this.skipNext = false;
+        return;
+      }
+
       this.emit('triggered');
 
       // start playing Spotify
@@ -80,6 +86,22 @@ class Alarm extends EventEmitter {
         };
       }
     }
+  }
+
+  getHasAlarmWithin24Hrs() {
+    const { alarms } = settings.get();
+    const now = clock.time;
+    const today = DAYS_IN_ORDER[now.getDay()];
+    const tomorrow = DAYS_IN_ORDER[(now.getDay() + 1) % 7];
+    const todayAlarm = alarms[today];
+    const tomorrowAlarm = alarms[tomorrow];
+    const nextAlarm = (
+      !todayAlarm.disabled &&
+      now.getHours() < todayAlarm.hour &&
+      now.getMinutes() < todayAlarm.minute
+    ) ? todayAlarm : tomorrowAlarm;
+
+    return !nextAlarm.disabled && !this.skipNext;
   }
 }
 

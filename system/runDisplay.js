@@ -107,10 +107,18 @@ const displayMachine = Machine({
       activities: ['drawNestSettings']
     },
     alarmSettings: {
-      on: {
-        MAIN_BUTTON: 'menu'
-      },
-      activities: ['drawAlarmSettings']
+      initial: 'skipNext',
+      states: {
+        skipNext: {
+          on: {
+            MAIN_BUTTON: {
+              target: 'skipNext',
+              actions: 'toggleSkipNext',
+            },
+          },
+          activities: ['drawAlarmSettingsSkipNext'],
+        },
+      }
     },
     alarmRinging: {
       on: {
@@ -160,7 +168,10 @@ const displayMachine = Machine({
     },
     quickAction: (context) => {
       hue.toggleGroupState();
-    }
+    },
+    toggleSkipNext: (context) => {
+      alarm.skipNext = !alarm.skipNext;
+    },
   },
   activities: {
     drawClock: (context) => {
@@ -175,6 +186,10 @@ const displayMachine = Machine({
           `${hour.toString()}:${minute.toString().padStart(2, '0')}`,
           { x: startX, y: 0 }
         );
+
+        // draw a dot for alarm
+        context.driver.drawPoint(23, 7, context.alarm.getHasAlarmWithin24Hrs() ? 1 : 0);
+
         context.driver.flushFrameBuffer();
       }
       context.clock.on('tick', draw);
@@ -188,7 +203,10 @@ const displayMachine = Machine({
     drawLightsSettingsOn: (context) => marquee('On', context.driver),
     drawLightsSettingsOff: (context) => marquee('Off', context.driver),
     drawNestSettings: (context) => marquee('TODO', context.driver),
-    drawAlarmSettings: (context) => marquee('TODO', context.driver),
+    drawAlarmSettingsSkipNext: (context) => {
+      const skipNext = context.alarm.skipNext;
+      return marquee(skipNext ? 'Unskip next' : 'Skip next', context.driver);
+    },
     drawAlarmRinging: (context) => marquee('Wake up!', context.driver),
     drawShowWeather: (context) => {
       let innerCancel = function() { /* no op */ };
