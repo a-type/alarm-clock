@@ -45,6 +45,7 @@ class Alarm extends EventEmitter {
 
     if (isAlarmMinute && !alarm.disabled) {
       if (this.skipNext) {
+        console.info('Skipping alarm, resetting skip next');
         this.skipNext = false;
         return;
       }
