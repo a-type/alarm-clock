@@ -125,6 +125,10 @@ const displayMachine = Machine({
         MAIN_BUTTON: {
           target: 'morningRoutine',
           actions: 'stopAlarm'
+        },
+        ALARM_TIMEOUT: {
+          target: 'morningRoutine',
+          actions: 'stopAlarm'
         }
       },
       activities: ['drawAlarmRinging']
@@ -236,10 +240,18 @@ module.exports = () => {
     if (idleTimeout) {
       clearTimeout(idleTimeout);
     }
-    if (state.value !== 'clock' && state.value !== 'alarmRinging') {
+    if (state.value === 'alarmRinging') {
+      idleTimeout = setTimeout(() => {
+        service.send('ALARM_TIMEOUT');
+      }, 5 * 60 * 1000);
+    } else if (state.value.morningRoutine) {
       idleTimeout = setTimeout(() => {
         service.send('IDLE');
-      }, 5000);
+      }, 30 * 1000)
+    } else if (state.value !== 'clock') {
+      idleTimeout = setTimeout(() => {
+        service.send('IDLE');
+      }, 5 * 1000);
     }
   });
 

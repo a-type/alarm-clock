@@ -38,12 +38,13 @@ class Alarm extends EventEmitter {
     const { alarms, spotify: spotifySettings } = settings.get();
     const today = DAYS_IN_ORDER[now.getDay()];
     const alarm = alarms[today];
-    if (!alarm || !alarm.hour || !alarm.minute) return;
+    if (!alarm || !alarm.hour || !alarm.minute || alarm.disabled) return;
 
     const isAlarmMinute =
       alarm.hour === now.getHours() && alarm.minute === now.getMinutes();
 
-    if (isAlarmMinute && !alarm.disabled) {
+    if (isAlarmMinute) {
+      console.info(`Alarm time triggered: ${now.toTimeString()}`)
       if (this.skipNext) {
         console.info('Skipping alarm, resetting skip next');
         this.skipNext = false;
