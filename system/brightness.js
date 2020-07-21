@@ -10,7 +10,8 @@ class Brightness extends EventEmitter {
   constructor() {
     super();
 
-    this.currentState = settings.get().display.nightBrightness;
+    // makes sure to initialize on first minute
+    this.currentState = null;
 
     ['handleMinuteChanged', 'start', 'stop'].forEach((m) => (this[m] = this[m].bind(this)));
 

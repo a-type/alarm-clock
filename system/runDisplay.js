@@ -124,11 +124,9 @@ const displayMachine = Machine({
       on: {
         MAIN_BUTTON: {
           target: 'morningRoutine',
-          actions: 'stopAlarm'
         },
         ALARM_TIMEOUT: {
           target: 'morningRoutine',
-          actions: 'stopAlarm'
         }
       },
       activities: ['drawAlarmRinging']
@@ -211,7 +209,13 @@ const displayMachine = Machine({
       const skipNext = context.alarm.skipNext;
       return marquee(skipNext ? 'Unskip next' : 'Skip next', context.driver);
     },
-    drawAlarmRinging: (context) => marquee('Wake up!', context.driver),
+    drawAlarmRinging: (context) => {
+      const stopMarquee = marquee('Wake up!', context.driver);
+      return () => {
+        stopMarquee();
+        context.alarm.stop();
+      };
+    },
     drawShowWeather: (context) => {
       let innerCancel = function() { /* no op */ };
       let cancel = function() { innerCancel() };
@@ -258,6 +262,8 @@ module.exports = () => {
   // input events
   rotary.on('button', () => {
     service.send('MAIN_BUTTON');
+    // always stop alarm if possible
+    alarm.stop();
   });
   rotary.on('increment', () => {
     service.send('DIAL_INCREMENT');
