@@ -9,9 +9,13 @@ class Alarm extends EventEmitter {
   constructor() {
     super();
 
-    ['handleMinuteChanged', 'enable', 'disable', 'stop', 'getHasAlarmWithin24Hrs'].forEach(
-      (m) => (this[m] = this[m].bind(this)),
-    );
+    [
+      'handleMinuteChanged',
+      'enable',
+      'disable',
+      'stop',
+      'getHasAlarmWithin24Hrs',
+    ].forEach((m) => (this[m] = this[m].bind(this)));
 
     this.stopAlarm = null;
     this.skipNext = false;
@@ -44,7 +48,7 @@ class Alarm extends EventEmitter {
       alarm.hour === now.getHours() && alarm.minute === now.getMinutes();
 
     if (isAlarmMinute) {
-      console.info(`Alarm time triggered: ${now.toTimeString()}`)
+      console.info(`Alarm time triggered: ${now.toTimeString()}`);
       if (this.skipNext) {
         console.info('Skipping alarm, resetting skip next');
         this.skipNext = false;
@@ -56,7 +60,11 @@ class Alarm extends EventEmitter {
       // start playing Spotify
       try {
         let volume = 5;
-        await spotify.shufflePlaylist(spotifySettings.deviceId, alarm.playlistUri, volume);
+        await spotify.shufflePlaylist(
+          spotifySettings.deviceId,
+          alarm.playlistUri,
+          volume,
+        );
 
         // slowly increase volume.
         let volumeIntervalHandle = setInterval(async () => {
@@ -69,7 +77,7 @@ class Alarm extends EventEmitter {
           try {
             await spotify.stopPlayback();
           } catch (err) {
-            console.error('Awkward, couldn\'t stop Spotify. Trying again...');
+            console.error("Awkward, couldn't stop Spotify. Trying again...");
             setTimeout(() => spotify.stopPlayback(), 1000);
           } finally {
             this.stopAlarm = null;
@@ -81,7 +89,9 @@ class Alarm extends EventEmitter {
         console.error('Could not play alarm music!');
 
         // we expect there to be a /home/pi/default_alarm.mp3 to play as a backup...
+        console.log('Playing backup alarm song...');
         const killPlay = mp3.play('/home/pi/default_alarm.mp3');
+        console.log('Backup song should be playing.');
         this.stopAlarm = () => {
           killPlay();
           this.stopAlarm = null;
@@ -97,11 +107,12 @@ class Alarm extends EventEmitter {
     const tomorrow = DAYS_IN_ORDER[(now.getDay() + 1) % 7];
     const todayAlarm = alarms[today];
     const tomorrowAlarm = alarms[tomorrow];
-    const nextAlarm = (
+    const nextAlarm =
       !todayAlarm.disabled &&
       now.getHours() < todayAlarm.hour &&
       now.getMinutes() < todayAlarm.minute
-    ) ? todayAlarm : tomorrowAlarm;
+        ? todayAlarm
+        : tomorrowAlarm;
 
     return !nextAlarm.disabled && !this.skipNext;
   }

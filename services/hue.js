@@ -96,7 +96,7 @@ async function getGroupState() {
 
 async function toggleGroupState() {
   const current = await getGroupState();
-  await setGroupState(!current.all_on);
+  await setGroupState(!current.any_on);
 }
 
 async function getBridge() {

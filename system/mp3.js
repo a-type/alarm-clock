@@ -4,34 +4,27 @@ const proc = require('child_process');
 
 let lastProcess;
 
+function stop() {
+  if (lastProcess) {
+    try {
+      process.kill(-lastProcess.pid);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
+
 /**
  * Plays an MP3 file using mpv. mpv must be installed. Returns a function
  * you can call to stop playback (kills process)
  */
 function playMp3(pathToFile) {
-  lastProcess = proc.exec(`mpv ${pathToFile}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error(error);
-    }
-    console.log('Playing Mp3: ' + pathToFile);
-  });
-  return () => {
-    try {
-      lastProcess.kill();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-}
-
-function stop() {
-  if (lastProcess) {
-    try {
-      lastProcess.kill();
-    } catch (err) {
-      console.error(err);
-    }
-  }
+  lastProcess = proc.spawn(
+    `mpv`,
+    ['-v', '--log-file=/home/pi/mpv.log', `${pathToFile}`],
+    { detached: true, stdio: 'pipe' },
+  );
+  return stop;
 }
 
 module.exports = {
