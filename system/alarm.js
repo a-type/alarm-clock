@@ -48,6 +48,7 @@ class Alarm extends EventEmitter {
       }
 
       this.emit('triggered');
+      console.info('Starting alarm sequence');
 
       // start the buzz alarm
       try {
