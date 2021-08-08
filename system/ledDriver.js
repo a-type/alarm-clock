@@ -201,9 +201,10 @@ class HT1632C {
    * then returns the updated cursor position, which will move horizontally
    * to the far end of the character.
    */
-  drawCharacter(char, cursor) {
-    let map = this.font[char];
-    if (!map) map = this.font[' '];
+  drawCharacter(char, cursor, font) {
+    const finalFont = (font || terminalFont);
+    let map = finalFont[char];
+    if (!map) map = finalFont[' '];
     const charWidth = map[0].length;
 
     for (let y = 0; y < map.length; y++) {

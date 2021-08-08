@@ -8,6 +8,7 @@ const marquee = require('./marquee');
 const hue = require('../services/hue');
 const brightness = require('./brightness');
 const weather = require('../services/weather');
+const { weatherCharMap } = require('./fonts');
 
 /**
  * DISPLAY
@@ -221,8 +222,8 @@ const displayMachine = Machine({
       let cancel = function() { innerCancel() };
       context.weather.getForecast()
         .then(({ conditions, high, low }) => {
-          const displayString = `${conditions}, ${high}/${low}`;
-          innerCancel = marquee(displayString, context.driver);
+          const displayString = `${weatherCharMap[conditions] || conditions} ${high}/${low}`;
+          innerCancel = marquee(displayString, context.driver, 2);
         }).catch((err) => {
           console.error(err);
           innerCancel = marquee('Good morning', context.driver);

@@ -9,6 +9,20 @@ async function request() {
   return response;
 }
 
+function parseCondition(id) {
+  if (id.startsWith('2')) {
+    return 'stormy';
+  } else if (id.startsWith('3' || id.startsWith('4'))) {
+    return 'rainy';
+  } else if (id.startsWith('4')) {
+    return snowy;
+  } else if (id.startsWith('8') && id !== '800') {
+    return 'cloudy';
+  } else {
+    return 'sunny';
+  }
+}
+
 async function getForecast() {
   const response = await request();
 
@@ -17,7 +31,10 @@ async function getForecast() {
     return new Date(d.dt * 1000).getDate() === now.getDate()
   });
 
-  const conditions = day.snow > 0 ? 'Snow' : day.rain > 0.5 ? 'Rain' : 'Clear';
+  console.log(day.weather);
+  const weather = day.weather[0];
+
+  const conditions = parseCondition(weather.id.toString());
   const high = Math.ceil(day.temp.max);
   const low = Math.floor(day.temp.min);
 

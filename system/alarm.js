@@ -8,9 +8,13 @@ class Alarm extends EventEmitter {
   constructor() {
     super();
 
-    ['handleMinuteChanged', 'enable', 'disable', 'stop', 'getHasAlarmWithin24Hrs'].forEach(
-      (m) => (this[m] = this[m].bind(this)),
-    );
+    [
+      'handleMinuteChanged',
+      'enable',
+      'disable',
+      'stop',
+      'getHasAlarmWithin24Hrs',
+    ].forEach((m) => (this[m] = this[m].bind(this)));
 
     this.stopAlarm = null;
     this.skipNext = false;
@@ -31,7 +35,7 @@ class Alarm extends EventEmitter {
   }
 
   async handleMinuteChanged(now) {
-    const { alarms, spotify: spotifySettings } = settings.get();
+    const { alarms, } = settings.get();
     const today = DAYS_IN_ORDER[now.getDay()];
     const alarm = alarms[today];
     if (!alarm || !alarm.hour || !alarm.minute || alarm.disabled) return;
@@ -40,7 +44,7 @@ class Alarm extends EventEmitter {
       alarm.hour === now.getHours() && alarm.minute === now.getMinutes();
 
     if (isAlarmMinute) {
-      console.info(`Alarm time triggered: ${now.toTimeString()}`)
+      console.info(`Alarm time triggered: ${now.toTimeString()}`);
       if (this.skipNext) {
         console.info('Skipping alarm, resetting skip next');
         this.skipNext = false;
@@ -67,11 +71,12 @@ class Alarm extends EventEmitter {
     const tomorrow = DAYS_IN_ORDER[(now.getDay() + 1) % 7];
     const todayAlarm = alarms[today];
     const tomorrowAlarm = alarms[tomorrow];
-    const nextAlarm = (
+    const nextAlarm =
       !todayAlarm.disabled &&
       now.getHours() < todayAlarm.hour &&
       now.getMinutes() < todayAlarm.minute
-    ) ? todayAlarm : tomorrowAlarm;
+        ? todayAlarm
+        : tomorrowAlarm;
 
     return !nextAlarm.disabled && !this.skipNext;
   }
