@@ -1,14 +1,15 @@
 const rpio = require('rpio');
 
 class Buzz {
-  playDurationTimeout = null;
-  playing = false;
-
-  constructor(private pin = 12) {
-    rpio.open(this.pin, rpio.OUTPUT, rpio.HIGH);
+  constructor(pin = 12) {
+    this.pin = pin;
+    this.playDurationTimeout = null;
+    this.playing = false;
+    rpio.open(this.pin, rpio.OUTPUT, rpio.LOW);
+    console.log('setup of buzz complete');
   }
 
-  async start(pulseLength = 1000, duration = 30 * 1000) {
+  async start(pulseLength = 1000, duration = 60 * 1000) {
     this.playing = true;
     this.playDurationTimeout = setTimeout(() => {
       this.playing = false;
@@ -20,14 +21,15 @@ class Buzz {
 
   stop() {
     this.playing = false;
-    rpio.write(this.pin, rpio.HIGH);
+    rpio.write(this.pin, rpio.LOW);
     if (this.playDurationTimeout) clearTimeout(this.playDurationTimeout);
   }
 
   async pulse(duration) {
+    rpio.write(this.pin, rpio.HIGH);
+    await new Promise(resolve => setTimeout(resolve, duration));
     rpio.write(this.pin, rpio.LOW);
     await new Promise(resolve => setTimeout(resolve, duration));
-    rpio.write(this.pin, rpio.HIGH);
   }
 }
 

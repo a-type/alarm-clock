@@ -63,12 +63,11 @@ function getFrameBufferIndex(x, y) {
 }
 
 class HT1632C {
-  constructor(wrPin = 11, dataPin = 9, csPin = 10, brightPin = 12) {
+  constructor(wrPin = 11, dataPin = 9, csPin = 10) {
     this.pins = {
       wr: wrPin,
       data: dataPin,
       cs: csPin,
-      bright: brightPin
     };
     this.font = terminalFont;
     this.frameBuffer = new Array(DIMENSIONS.WIDTH * DIMENSIONS.HEIGHT).fill(0);
@@ -86,13 +85,6 @@ class HT1632C {
     rpio.open(this.pins.wr, rpio.OUTPUT, rpio.HIGH);
     rpio.open(this.pins.data, rpio.OUTPUT, rpio.LOW);
     rpio.open(this.pins.cs, rpio.OUTPUT, rpio.HIGH);
-    rpio.open(this.pins.bright, rpio.OUTPUT, rpio.HIGH);
-
-    let v = 0;
-    setInterval(() => {
-      rpio.write(this.pins.bright, v);
-      if (v === 0) v = 1; else v = 0;
-    }, 1000);
 
     this.initDisplay();
   }
