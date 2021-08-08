@@ -5,7 +5,7 @@ class Buzz {
   playing = false;
 
   constructor(private pin = 12) {
-    rpio.open(this.pin, rpio.OUTPUT, rpio.LOW);
+    rpio.open(this.pin, rpio.OUTPUT, rpio.HIGH);
   }
 
   async start(pulseLength = 1000, duration = 30 * 1000) {
@@ -20,14 +20,14 @@ class Buzz {
 
   stop() {
     this.playing = false;
-    rpio.write(this.pin, rpio.LOW);
+    rpio.write(this.pin, rpio.HIGH);
     if (this.playDurationTimeout) clearTimeout(this.playDurationTimeout);
   }
 
   async pulse(duration) {
-    rpio.write(this.pin, rpio.HIGH);
-    await new Promise(resolve => setTimeout(resolve, duration));
     rpio.write(this.pin, rpio.LOW);
+    await new Promise(resolve => setTimeout(resolve, duration));
+    rpio.write(this.pin, rpio.HIGH);
   }
 }
 
