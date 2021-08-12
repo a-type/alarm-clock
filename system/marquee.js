@@ -16,6 +16,7 @@ function measureText(text, driver) {
 module.exports = function marquee(text, driver, speed = 1) {
   const changeDelay = 1500 / speed;
   const moveDelay = 500 / speed;
+  let stop = false;
 
   const textLength = measureText(text, driver);
 
@@ -38,6 +39,7 @@ module.exports = function marquee(text, driver, speed = 1) {
     }
 
     function move() {
+      if (stop) return;
       x -= 1;
       driver.clearFrameBuffer();
       driver.drawString(text, { x, y: 0});
@@ -51,6 +53,9 @@ module.exports = function marquee(text, driver, speed = 1) {
 
     reset();
 
-    return () => clearTimeout(timeoutHandle);
+    return () => {
+      clearTimeout(timeoutHandle);
+      stop = true;
+    };
   }
 }
