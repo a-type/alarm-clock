@@ -10,6 +10,7 @@ class Buzz {
   }
 
   async start(pulseLength = 1000, duration = 60 * 1000) {
+    console.info('starting buzz');
     this.playing = true;
     this.playDurationTimeout = setTimeout(() => {
       this.playing = false;
@@ -20,6 +21,7 @@ class Buzz {
   }
 
   stop() {
+    console.info('stopping buzz');
     this.playing = false;
     rpio.write(this.pin, rpio.LOW);
     if (this.playDurationTimeout) clearTimeout(this.playDurationTimeout);

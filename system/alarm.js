@@ -38,7 +38,9 @@ class Alarm extends EventEmitter {
     const { alarms, } = settings.get();
     const today = DAYS_IN_ORDER[now.getDay()];
     const alarm = alarms[today];
-    if (!alarm || !alarm.hour || !alarm.minute || alarm.disabled) return;
+    console.debug('Current time', now.getHours(), ':', now.getMinutes());
+    console.debug(`Next Alarm: ${alarm ? `${alarm.hour}:${alarm.minute}` : 'none today'}`);
+    if (!alarm || alarm.hour === undefined || alarm.minute === undefined || alarm.disabled) return;
 
     const isAlarmMinute =
       alarm.hour === now.getHours() && alarm.minute === now.getMinutes();
