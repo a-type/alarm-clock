@@ -22,224 +22,244 @@ const { weatherCharMap } = require('./fonts');
  * state instance to after constructing it.
  */
 
-const displayMachine = Machine({
-  id: 'display',
-  initial: 'clock',
-  context: {
-    driver,
-    settings,
-    alarm,
-    clock,
-    hue,
-    weather,
-  },
-  states: {
-    clock: {
-      on: {
-        MAIN_BUTTON: {
-          target: 'clock',
-          actions: 'quickAction'
-        },
-        DIAL_INCREMENT: 'menu',
-        DIAL_DECREMENT: 'menu',
-      },
-      activities: ['drawClock']
+const displayMachine = Machine(
+  {
+    id: 'display',
+    initial: 'clock',
+    context: {
+      driver,
+      settings,
+      alarm,
+      clock,
+      hue,
+      weather,
     },
-    menu: {
-      initial: 'lights',
-      states: {
-        lights: {
-          on: {
-            MAIN_BUTTON: '#display.lightsSettings',
-            DIAL_INCREMENT: 'nest',
-            DIAL_DECREMENT: 'alarm'
-          },
-          activities: ['drawMenuLights']
-        },
-        nest: {
-          on: {
-            MAIN_BUTTON: '#display.nestSettings',
-            DIAL_INCREMENT: 'alarm',
-            DIAL_DECREMENT: 'lights'
-          },
-          activities: ['drawMenuNest']
-        },
-        alarm: {
-          on: {
-            MAIN_BUTTON: '#display.alarmSettings',
-            DIAL_INCREMENT: 'lights',
-            DIAL_DECREMENT: 'nest'
-          },
-          activities: ['drawMenuAlarm']
-        }
-      }
-    },
-    lightsSettings: {
-      initial: 'on',
-      states: {
+    states: {
+      clock: {
         on: {
-          on: {
-            MAIN_BUTTON: {
-              target: '#display.clock',
-              actions: 'lightsOn',
-            },
-            DIAL_INCREMENT: 'off',
-            DIAL_DECREMENT: 'off',
+          MAIN_BUTTON: {
+            target: 'clock',
+            actions: 'quickAction',
           },
-          activities: ['drawLightsSettingsOn']
+          DIAL_INCREMENT: 'menu',
+          DIAL_DECREMENT: 'menu',
         },
-        off: {
-          on: {
-            MAIN_BUTTON: {
-              target: '#display.clock',
-              actions: 'lightsOff',
+        activities: ['drawClock'],
+      },
+      menu: {
+        initial: 'alarm',
+        states: {
+          nest: {
+            on: {
+              MAIN_BUTTON: '#display.nestSettings',
+              DIAL_INCREMENT: 'alarm',
+              DIAL_DECREMENT: 'weather',
             },
-            DIAL_INCREMENT: 'on',
-            DIAL_DECREMENT: 'on',
+            activities: ['drawMenuNest'],
           },
-          activities: ['drawLightsSettingsOff']
-        }
+          alarm: {
+            on: {
+              MAIN_BUTTON: '#display.alarmSettings',
+              DIAL_INCREMENT: 'weather',
+              DIAL_DECREMENT: 'nest',
+            },
+            activities: ['drawMenuAlarm'],
+          },
+          weather: {
+            on: {
+              MAIN_BUTTON: '#display.clock',
+              DIAL_INCREMENT: 'nest',
+              DIAL_DECREMENT: 'alarm',
+            },
+            activities: ['drawShowWeather'],
+          },
+        },
+      },
+      lightsSettings: {
+        initial: 'on',
+        states: {
+          on: {
+            on: {
+              MAIN_BUTTON: {
+                target: '#display.clock',
+                actions: 'lightsOn',
+              },
+              DIAL_INCREMENT: 'off',
+              DIAL_DECREMENT: 'off',
+            },
+            activities: ['drawLightsSettingsOn'],
+          },
+          off: {
+            on: {
+              MAIN_BUTTON: {
+                target: '#display.clock',
+                actions: 'lightsOff',
+              },
+              DIAL_INCREMENT: 'on',
+              DIAL_DECREMENT: 'on',
+            },
+            activities: ['drawLightsSettingsOff'],
+          },
+        },
+      },
+      nestSettings: {
+        on: {
+          MAIN_BUTTON: 'menu',
+        },
+        activities: ['drawNestSettings'],
+      },
+      alarmSettings: {
+        initial: 'skipNext',
+        states: {
+          skipNext: {
+            on: {
+              MAIN_BUTTON: {
+                target: 'skipNext',
+                actions: 'toggleSkipNext',
+              },
+            },
+            activities: ['drawAlarmSettingsSkipNext'],
+          },
+        },
+      },
+      alarmRinging: {
+        on: {
+          MAIN_BUTTON: {
+            target: 'weather',
+          },
+          ALARM_TIMEOUT: {
+            target: 'weather',
+          },
+        },
+        activities: ['drawAlarmRinging'],
+      },
+      weather: {
+        initial: 'showWeather',
+        states: {
+          showWeather: {
+            on: {
+              MAIN_BUTTON: '#display.clock',
+            },
+            activities: ['drawShowWeather'],
+          },
+        },
       },
     },
-    nestSettings: {
-      on: {
-        MAIN_BUTTON: 'menu'
-      },
-      activities: ['drawNestSettings']
-    },
-    alarmSettings: {
-      initial: 'skipNext',
-      states: {
-        skipNext: {
-          on: {
-            MAIN_BUTTON: {
-              target: 'skipNext',
-              actions: 'toggleSkipNext',
-            },
-          },
-          activities: ['drawAlarmSettingsSkipNext'],
+    on: {
+      IDLE: {
+        target: 'clock',
+        cond: (_, __, meta) => {
+          return !['clock', 'alarmRinging'].includes(meta.state.value);
         },
-      }
-    },
-    alarmRinging: {
-      on: {
-        MAIN_BUTTON: {
-          target: 'morningRoutine',
-        },
-        ALARM_TIMEOUT: {
-          target: 'morningRoutine',
-        }
       },
-      activities: ['drawAlarmRinging']
+      ALARM_TRIGGERED: {
+        target: 'alarmRinging',
+      },
     },
-    morningRoutine: {
-      initial: 'showWeather',
-      states: {
-        showWeather: {
-          on: {
-            MAIN_BUTTON: '#display.clock'
-          },
-          activities: ['drawShowWeather']
-        }
-      }
-    }
   },
-  on: {
-    IDLE: {
-      target: 'clock',
-      cond: (_, __, meta) => {
-        return !['clock', 'alarmRinging'].includes(meta.state.value);
+  {
+    actions: {
+      clearScreen: (context) => {
+        context.driver.clearScreen();
+      },
+      stopAlarm: (context) => {
+        alarm.stop();
+      },
+      lightsOn: (context) => {
+        hue.setGroupState(true);
+      },
+      lightsOff: (context) => {
+        hue.setGroupState(false);
+      },
+      quickAction: (context) => {
+        hue.toggleGroupState();
+      },
+      toggleSkipNext: (context) => {
+        alarm.skipNext = !alarm.skipNext;
       },
     },
-    ALARM_TRIGGERED: {
-      target: 'alarmRinging'
-    }
-  }
-}, {
-  actions: {
-    clearScreen: (context) => {
-      context.driver.clearScreen();
-    },
-    stopAlarm: (context) => {
-      alarm.stop();
-    },
-    lightsOn: (context) => {
-      hue.setGroupState(true);
-    },
-    lightsOff: (context) => {
-      hue.setGroupState(false);
-    },
-    quickAction: (context) => {
-      hue.toggleGroupState();
-    },
-    toggleSkipNext: (context) => {
-      alarm.skipNext = !alarm.skipNext;
+    activities: {
+      drawClock: (context) => {
+        function draw(now) {
+          const hour = now.getHours();
+          const minute = now.getMinutes();
+
+          const startX = hour < 10 ? 5 : 1;
+
+          context.driver.clearFrameBuffer();
+          context.driver.drawString(
+            `${hour.toString()}:${minute.toString().padStart(2, '0')}`,
+            { x: startX, y: 0 },
+          );
+
+          // draw a dot for alarm
+          context.driver.drawPoint(
+            23,
+            7,
+            context.alarm.getHasAlarmWithin24Hrs() ? 1 : 0,
+          );
+
+          context.driver.flushFrameBuffer();
+        }
+        context.clock.on('tick', draw);
+
+        // cancels updates on end
+        return () => context.clock.off('tick', draw);
+      },
+      drawMenuLights: (context) => marquee('Lights', context.driver),
+      drawMenuNest: (context) => marquee('Nest', context.driver),
+      drawMenuAlarm: (context) => marquee('Alarm', context.driver),
+      drawLightsSettingsOn: (context) => marquee('On', context.driver),
+      drawLightsSettingsOff: (context) => marquee('Off', context.driver),
+      drawNestSettings: (context) => marquee('TODO', context.driver),
+      drawAlarmSettingsSkipNext: (context) => {
+        const skipNext = context.alarm.skipNext;
+        return marquee(skipNext ? 'Unskip next' : 'Skip next', context.driver);
+      },
+      drawAlarmRinging: (context) => {
+        const stopMarquee = marquee('Wake up!', context.driver);
+        return () => {
+          stopMarquee();
+          context.alarm.stop();
+        };
+      },
+      drawShowWeather: (context) => {
+        let wasCanceled = false;
+        let innerCancel = function () {
+          wasCanceled = true;
+        };
+        let cancel = function () {
+          innerCancel();
+        };
+        context.weather
+          .getForecast()
+          .then(({ conditions, high, low }) => {
+            if (wasCanceled) return;
+
+            const displayString = `${
+              weatherCharMap[conditions] || conditions
+            } ${high}/${low}`;
+            innerCancel = marquee(displayString, context.driver, 2);
+          })
+          .catch((err) => {
+            if (wasCanceled) return;
+
+            console.error(err);
+            innerCancel = marquee('Good morning', context.driver);
+          });
+
+        return cancel;
+      },
     },
   },
-  activities: {
-    drawClock: (context) => {
-      function draw(now) {
-        const hour = now.getHours();
-        const minute = now.getMinutes();
-
-        const startX = hour < 10 ? 5 : 1;
-
-        context.driver.clearFrameBuffer();
-        context.driver.drawString(
-          `${hour.toString()}:${minute.toString().padStart(2, '0')}`,
-          { x: startX, y: 0 }
-        );
-
-        // draw a dot for alarm
-        context.driver.drawPoint(23, 7, context.alarm.getHasAlarmWithin24Hrs() ? 1 : 0);
-
-        context.driver.flushFrameBuffer();
-      }
-      context.clock.on('tick', draw);
-
-      // cancels updates on end
-      return () => context.clock.off('tick', draw);
-    },
-    drawMenuLights: (context) => marquee('Lights', context.driver),
-    drawMenuNest: (context) => marquee('Nest', context.driver),
-    drawMenuAlarm: (context) => marquee('Alarm', context.driver),
-    drawLightsSettingsOn: (context) => marquee('On', context.driver),
-    drawLightsSettingsOff: (context) => marquee('Off', context.driver),
-    drawNestSettings: (context) => marquee('TODO', context.driver),
-    drawAlarmSettingsSkipNext: (context) => {
-      const skipNext = context.alarm.skipNext;
-      return marquee(skipNext ? 'Unskip next' : 'Skip next', context.driver);
-    },
-    drawAlarmRinging: (context) => {
-      const stopMarquee = marquee('Wake up!', context.driver);
-      return () => {
-        stopMarquee();
-        context.alarm.stop();
-      };
-    },
-    drawShowWeather: (context) => {
-      let innerCancel = function() { /* no op */ };
-      let cancel = function() { innerCancel() };
-      context.weather.getForecast()
-        .then(({ conditions, high, low }) => {
-          const displayString = `${weatherCharMap[conditions] || conditions} ${high}/${low}`;
-          innerCancel = marquee(displayString, context.driver, 2);
-        }).catch((err) => {
-          console.error(err);
-          innerCancel = marquee('Good morning', context.driver);
-        });
-
-      return cancel;
-    },
-  }
-})
+);
 
 module.exports = () => {
   const service = interpret(displayMachine);
 
   // idle timeout event
   let idleTimeout = null;
-  service.onTransition(state => {
+  service.onTransition((state) => {
     console.log('State: ' + JSON.stringify(state.value));
 
     if (idleTimeout) {
@@ -249,10 +269,10 @@ module.exports = () => {
       idleTimeout = setTimeout(() => {
         service.send('ALARM_TIMEOUT');
       }, 5 * 60 * 1000);
-    } else if (state.value.morningRoutine) {
+    } else if (state.value.weather) {
       idleTimeout = setTimeout(() => {
         service.send('IDLE');
-      }, 30 * 1000)
+      }, 20 * 1000);
     } else if (state.value !== 'clock') {
       idleTimeout = setTimeout(() => {
         service.send('IDLE');
@@ -278,7 +298,7 @@ module.exports = () => {
     service.send('ALARM_TRIGGERED');
   });
 
-  brightness.on('changed', level => {
+  brightness.on('changed', (level) => {
     driver.setBrightness(level);
   });
 

@@ -10,10 +10,14 @@ function measureText(text, driver) {
   return len;
 }
 
+let clearMarquee = () => {};
+
 /**
  * Returns a function to cancel the marquee
  */
 module.exports = function marquee(text, driver, speed = 1) {
+  clearMarquee();
+
   const changeDelay = 1500 / speed;
   const moveDelay = 500 / speed;
   let stop = false;
@@ -33,7 +37,7 @@ module.exports = function marquee(text, driver, speed = 1) {
     function reset() {
       x = 0;
       driver.clearFrameBuffer();
-      driver.drawString(text, { x, y: 0});
+      driver.drawString(text, { x, y: 0 });
       driver.flushFrameBuffer();
       timeoutHandle = setTimeout(move, changeDelay);
     }
@@ -42,7 +46,7 @@ module.exports = function marquee(text, driver, speed = 1) {
       if (stop) return;
       x -= 1;
       driver.clearFrameBuffer();
-      driver.drawString(text, { x, y: 0});
+      driver.drawString(text, { x, y: 0 });
       driver.flushFrameBuffer();
       if (x < -(textLength - driver.dimensions.width)) {
         timeoutHandle = setTimeout(reset, changeDelay);
@@ -53,9 +57,11 @@ module.exports = function marquee(text, driver, speed = 1) {
 
     reset();
 
-    return () => {
+    clearMarquee = () => {
       clearTimeout(timeoutHandle);
       stop = true;
     };
+
+    return clearMarquee;
   }
-}
+};
